@@ -17,7 +17,7 @@ import logging
 
 from osc_lib import utils
 
-from nimbleclient.i18n import _
+from nimbleclient.common.i18n import _
 
 LOG = logging.getLogger(__name__)
 
