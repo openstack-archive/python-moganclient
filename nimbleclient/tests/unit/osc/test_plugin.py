@@ -13,20 +13,3 @@
 #   under the License.
 #
 
-import logging
-
-from nimbleclient.common.i18n import _LE
-
-LOG = logging.getLogger(__name__)
-
-
-def get_response_body(resp):
-    body = resp.content
-    if 'application/json' in resp.headers.get('content-type', ''):
-        try:
-            body = resp.json()
-        except ValueError:
-            LOG.error(_LE('Could not decode response body as JSON'))
-    else:
-        body = None
-    return body
