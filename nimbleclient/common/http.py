@@ -27,10 +27,10 @@ import requests
 import six
 from six.moves.urllib import parse
 
+from nimbleclient.common import exceptions as exc
+from nimbleclient.common.i18n import _
+from nimbleclient.common.i18n import _LW
 from nimbleclient.common import utils
-from nimbleclient import exceptions as exc
-from nimbleclient.i18n import _
-from nimbleclient.i18n import _LW
 
 LOG = logging.getLogger(__name__)
 
@@ -38,19 +38,6 @@ USER_AGENT = 'python-nimbleclient'
 CHUNKSIZE = 1024 * 64  # 64kB
 SENSITIVE_HEADERS = ('X-Auth-Token',)
 osprofiler_web = importutils.try_import('osprofiler.web')
-
-
-def authenticated_fetcher(hc):
-    """A wrapper around the nimble client object to fetch a template."""
-
-    def _do(*args, **kwargs):
-        if isinstance(hc.http_client, SessionClient):
-            method, url = args
-            return hc.http_client.request(url, method, **kwargs).content
-        else:
-            return hc.http_client.raw_request(*args, **kwargs).content
-
-    return _do
 
 
 def get_system_ca_file():
@@ -101,8 +88,9 @@ class HTTPClient(object):
             else:
                 self.verify_cert = kwargs.get('ca_file', get_system_ca_file())
 
-        # FIXME(shardy): We need this for compatibility with the oslo apiclient
-        # we should move to inheriting this class from the oslo HTTPClient
+        # FIXME(RuiChen): We need this for compatibility with the oslo
+        # apiclient we should move to inheriting this class from the oslo
+        # HTTPClient
         self.last_request_id = None
 
     def safe_header(self, name, value):
@@ -215,44 +203,49 @@ class HTTPClient(object):
         except socket.gaierror as e:
             message = (_("Error finding address for %(url)s: %(e)s") %
                        {'url': self.endpoint_url + url, 'e': e})
-            raise exc.InvalidEndpoint(message=message)
+            raise exc.EndpointNotFound(message=message)
         except (socket.error, socket.timeout) as e:
             endpoint = self.endpoint
             message = (_("Error communicating with %(endpoint)s %(e)s") %
                        {'endpoint': endpoint, 'e': e})
-            raise exc.CommunicationError(message=message)
+            raise exc.ConnectionError(message=message)
 
         self.log_http_response(resp)
 
         if not ('X-Auth-Key' in kwargs['headers']) and (
                 resp.status_code == 401 or
                 (resp.status_code == 500 and "(HTTP 401)" in resp.content)):
-            raise exc.HTTPUnauthorized(_("Authentication failed: %s")
-                                       % resp.content)
+            raise exc.AuthorizationFailure(_("Authentication failed: %s")
+                                           % resp.content)
         elif 400 <= resp.status_code < 600:
-            raise exc.from_response(resp)
+            raise exc.from_response(resp, method, url)
         elif resp.status_code in (301, 302, 305):
             # Redirected. Reissue the request to the new location,
             # unless caller specified redirect=False
             if redirect:
                 location = resp.headers.get('location')
-                if not location:
-                    message = _("Location not returned with redirect")
-                    raise exc.InvalidEndpoint(message=message)
+                location = self.strip_endpoint(location)
                 resp = self._http_request(location, method, **kwargs)
         elif resp.status_code == 300:
-            raise exc.from_response(resp)
+            raise exc.from_response(resp, method, url)
 
         return resp
 
+    def strip_endpoint(self, location):
+        if location is None:
+            message = _("Location not returned with redirect")
+            raise exc.EndpointException(message=message)
+        if location.lower().startswith(self.endpoint):
+            return location[len(self.endpoint):]
+        else:
+            return location
+
     def credentials_headers(self):
         creds = {}
-        # NOTE(dhu): (shardy) When deferred_auth_method=password, Heat
+        # NOTE(RuiChen): When deferred_auth_method=password, Heat
         # encrypts and stores username/password.  For Keystone v3, the
         # intent is to use trusts since SHARDY is working towards
         # deferred_auth_method=trusts as the default.
-        # TODO(dhu): Make Keystone v3 work in Heat standalone mode.  Maye
-        # require X-Auth-User-Domain.
         if self.username:
             creds['X-Auth-User'] = self.username
         if self.password:
@@ -275,29 +268,27 @@ class HTTPClient(object):
         kwargs.setdefault('headers', {})
         kwargs['headers'].setdefault('Content-Type',
                                      'application/octet-stream')
-        return self._http_request(url, method, **kwargs)
-
-    def client_request(self, method, url, **kwargs):
-        resp, body = self.json_request(method, url, **kwargs)
-        return resp
+        resp = self._http_request(url, method, **kwargs)
+        body = utils.get_response_body(resp)
+        return resp, body
 
     def head(self, url, **kwargs):
-        return self.client_request("HEAD", url, **kwargs)
+        return self.json_request("HEAD", url, **kwargs)
 
     def get(self, url, **kwargs):
-        return self.client_request("GET", url, **kwargs)
+        return self.json_request("GET", url, **kwargs)
 
     def post(self, url, **kwargs):
-        return self.client_request("POST", url, **kwargs)
+        return self.json_request("POST", url, **kwargs)
 
     def put(self, url, **kwargs):
-        return self.client_request("PUT", url, **kwargs)
+        return self.json_request("PUT", url, **kwargs)
 
     def delete(self, url, **kwargs):
         return self.raw_request("DELETE", url, **kwargs)
 
     def patch(self, url, **kwargs):
-        return self.client_request("PATCH", url, **kwargs)
+        return self.json_request("PATCH", url, **kwargs)
 
 
 class SessionClient(adapter.LegacyJsonAdapter):
@@ -316,24 +307,24 @@ class SessionClient(adapter.LegacyJsonAdapter):
             **kwargs)
 
         if 400 <= resp.status_code < 600:
-            raise exc.from_response(resp)
+            raise exc.from_response(resp, method, url)
         elif resp.status_code in (301, 302, 305):
             if redirect:
                 location = resp.headers.get('location')
                 path = self.strip_endpoint(location)
-                resp = self.request(path, method, **kwargs)
+                resp, body = self.request(path, method, **kwargs)
         elif resp.status_code == 300:
-            raise exc.from_response(resp)
+            raise exc.from_response(resp, method, url)
 
-        return resp
+        return resp, body
 
     def credentials_headers(self):
         return {}
 
     def strip_endpoint(self, location):
         if location is None:
-            message = _("Location not returned with 302")
-            raise exc.InvalidEndpoint(message=message)
+            message = _("Location not returned with redirect")
+            raise exc.EndpointException(message=message)
         if (self.endpoint_override is not None and
                 location.lower().startswith(self.endpoint_override.lower())):
                 return location[len(self.endpoint_override):]
