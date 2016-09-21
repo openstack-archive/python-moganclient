@@ -1,0 +1,10 @@
+Code-Review+1: Zhenyu Zheng <zhengzhenyu@huawei.com>
+Code-Review+1: shihanzhang <shihanzhang@huawei.com>
+Code-Review+2: Rui Chen <chenrui.momo@gmail.com>
+Workflow+1: Rui Chen <chenrui.momo@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Wed, 21 Sep 2016 08:25:35 +0000
+Reviewed-on: https://review.openstack.org/373085
+Project: openstack/python-nimbleclient
+Branch: refs/heads/master
