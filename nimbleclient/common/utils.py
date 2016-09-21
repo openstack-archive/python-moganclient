@@ -15,14 +15,14 @@
 
 import logging
 
-from nimbleclient.i18n import _LE
+from nimbleclient.common.i18n import _LE
 
 LOG = logging.getLogger(__name__)
 
 
 def get_response_body(resp):
     body = resp.content
-    if 'application/json' in resp.headers.get('content-type', ''):
+    if 'application/json' in resp.headers.get('Content-Type', ''):
         try:
             body = resp.json()
         except ValueError:

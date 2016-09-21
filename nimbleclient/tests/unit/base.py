@@ -14,9 +14,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslotest import base
+from osc_lib.tests import utils
 
 
-class TestCase(base.BaseTestCase):
-
+class TestBase(utils.TestCommand):
     """Test case base class for all unit tests."""
+    pass
