@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Copyright 2016 Huawei, Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -14,9 +12,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from oslotest import base
+from osc_lib.tests import utils
 
 
-class TestCase(base.BaseTestCase):
-
-    """Test case base class for all unit tests."""
+class TestBase(utils.TestCommand):
+    """Test case base class for all functional tests."""
+    pass
