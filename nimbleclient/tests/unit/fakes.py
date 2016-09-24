@@ -14,6 +14,88 @@
 #
 
 from oslo_serialization import jsonutils
+from requests import Response
+
+from nimbleclient.common import base
+
+# fake request id
+FAKE_REQUEST_ID = 'req-0594c66b-6973-405c-ae2c-43fcfc00f2e3'
+FAKE_REQUEST_ID_LIST = [FAKE_REQUEST_ID]
+
+# fake resource id
+FAKE_RESOURCE_ID = '0594c66b-6973-405c-ae2c-43fcfc00f2e3'
+FAKE_RESOURCE_NAME = 'name-0594c66b-6973-405c-ae2c-43fcfc00f2e3'
+
+# fake resource response key
+FAKE_RESOURCE_ITEM_URL = '/resources/%s'
+FAKE_RESOURCE_COLLECTION_URL = '/resources'
+
+
+def create_response_obj_with_header():
+    resp = Response()
+    resp.headers['x-openstack-request-id'] = FAKE_REQUEST_ID
+    return resp
+
+
+def create_response_obj_with_compute_header():
+    resp = Response()
+    resp.headers['x-compute-request-id'] = FAKE_REQUEST_ID
+    return resp
+
+
+def create_resource_manager():
+    return FakeManager()
+
+
+class FakeHTTPClient(object):
+
+    def get(self):
+        pass
+
+    def head(self):
+        pass
+
+    def post(self):
+        pass
+
+    def put(self):
+        pass
+
+    def delete(self):
+        pass
+
+    def patch(self):
+        pass
+
+
+class FaksResource(base.Resource):
+    id = 'N/A'
+
+
+class FakeManager(base.ManagerWithFind):
+    resource_class = FaksResource
+
+    def __init__(self, api=None):
+        if not api:
+            api = FakeHTTPClient()
+        super(FakeManager, self).__init__(api)
+
+    def get(self, resource):
+        return self._get(FAKE_RESOURCE_ITEM_URL % base.getid(resource))
+
+    def list(self):
+        return self._list(FAKE_RESOURCE_COLLECTION_URL,
+                          response_key='resources')
+
+    def update(self, resource):
+        return self._update(FAKE_RESOURCE_ITEM_URL % base.getid(resource),
+                            resource)
+
+    def create(self, resource):
+        return self._create(FAKE_RESOURCE_COLLECTION_URL, resource)
+
+    def delete(self, resource):
+        return self._delete(FAKE_RESOURCE_ITEM_URL % base.getid(resource))
 
 
 class FakeRaw(object):
