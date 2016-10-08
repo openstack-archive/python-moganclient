@@ -35,13 +35,13 @@ except NameError:
 
 
 def getid(obj):
-    """Get obj's id or object itself if no id
+    """Get obj's uuid or object itself if no uuid
 
     Abstracts the common pattern of allowing both an object or
     an object's ID (UUID) as a parameter when dealing with relationships.
     """
     try:
-        return obj.id
+        return obj.uuid
     except AttributeError:
         return obj
 
@@ -214,7 +214,7 @@ class RequestIdMixin(object):
 
     def _append_request_id(self, resp):
         if isinstance(resp, Response):
-            # Extract 'x-openstack-request-id' from headers if
+            # Extract 'X-Openstack-Request-Id' from headers if
             # response is a Response object.
             request_id = (resp.headers.get('x-openstack-request-id') or
                           resp.headers.get('x-compute-request-id'))

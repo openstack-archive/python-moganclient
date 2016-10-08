@@ -73,7 +73,7 @@ class TestResource(test_base.TestBase):
 
         # Two resources of different types: never equal
         r1 = base.Resource(None, {'id': 1})
-        r2 = fakes.FaksResource(None, {'id': 1})
+        r2 = fakes.FakeResource(None, {'id': 1})
         self.assertNotEqual(r1, r2)
 
         # Two resources with no ID: equal if their info is equal
@@ -99,7 +99,7 @@ class TestManager(test_base.TestBase):
     def test_manager_get(self, mock_get):
         mock_get.return_value = (fakes.create_response_obj_with_header(),
                                  mock.MagicMock())
-        fake_resource = fakes.FaksResource(
+        fake_resource = fakes.FakeResource(
             None, dict(id=fakes.FAKE_RESOURCE_ID,
                        name=fakes.FAKE_RESOURCE_NAME))
         result = self.fake_manager.get(fake_resource)
@@ -123,7 +123,7 @@ class TestManager(test_base.TestBase):
     def test_manager_update(self, mock_patch):
         mock_patch.return_value = (fakes.create_response_obj_with_header(),
                                    mock.MagicMock())
-        fake_resource = fakes.FaksResource(
+        fake_resource = fakes.FakeResource(
             None, dict(id=fakes.FAKE_RESOURCE_ID,
                        name=fakes.FAKE_RESOURCE_NAME))
         result = self.fake_manager.update(fake_resource)
@@ -138,7 +138,7 @@ class TestManager(test_base.TestBase):
     def test_manager_delete(self, mock_delete):
         mock_delete.return_value = (fakes.create_response_obj_with_header(),
                                     None)
-        fake_resource = fakes.FaksResource(
+        fake_resource = fakes.FakeResource(
             None, dict(id=fakes.FAKE_RESOURCE_ID,
                        name=fakes.FAKE_RESOURCE_NAME))
         result = self.fake_manager.delete(fake_resource)
@@ -151,7 +151,7 @@ class TestManager(test_base.TestBase):
     def test_manager_create(self, mock_post):
         mock_post.return_value = (fakes.create_response_obj_with_header(),
                                   mock.MagicMock())
-        fake_resource = fakes.FaksResource(
+        fake_resource = fakes.FakeResource(
             None, dict(id=fakes.FAKE_RESOURCE_ID,
                        name=fakes.FAKE_RESOURCE_NAME))
         result = self.fake_manager.create(fake_resource)
