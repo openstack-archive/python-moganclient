@@ -633,7 +633,7 @@ class TestSessionClient(base.TestBase):
         resp, body = client.request('', 'GET', **kwargs)
 
         self.assertEqual({'endpoint_override': 'http://no.where/',
-                          'data': '"some_data"',
+                          'json': 'some_data',
                           'user_agent': 'python-nimbleclient',
                           'raise_exc': False}, self.request.call_args[1])
         self.assertEqual(200, resp.status_code)
@@ -655,7 +655,7 @@ class TestSessionClient(base.TestBase):
         resp, body = client.request('', 'GET', **kwargs)
 
         self.assertEqual({'endpoint_override': 'http://no.where/',
-                          'data': "{'files': test}}",
+                          'json': {'files': data},
                           'user_agent': 'python-nimbleclient',
                           'raise_exc': False}, self.request.call_args[1])
         self.assertEqual(200, resp.status_code)
