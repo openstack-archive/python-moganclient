@@ -299,7 +299,7 @@ class SessionClient(adapter.LegacyJsonAdapter):
         kwargs.setdefault('user_agent', USER_AGENT)
 
         if 'data' in kwargs:
-            kwargs['data'] = jsonutils.dumps(kwargs['data'])
+            kwargs['json'] = kwargs.pop('data')
 
         resp, body = super(SessionClient, self).request(
             url, method,

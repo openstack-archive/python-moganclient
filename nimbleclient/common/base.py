@@ -214,7 +214,7 @@ class RequestIdMixin(object):
 
     def _append_request_id(self, resp):
         if isinstance(resp, Response):
-            # Extract 'x-openstack-request-id' from headers if
+            # Extract 'X-Openstack-Request-Id' from headers if
             # response is a Response object.
             request_id = (resp.headers.get('x-openstack-request-id') or
                           resp.headers.get('x-compute-request-id'))
