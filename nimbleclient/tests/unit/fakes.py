@@ -13,6 +13,10 @@
 #   under the License.
 #
 
+import copy
+import uuid
+
+import mock
 from oslo_serialization import jsonutils
 from requests import Response
 
@@ -47,6 +51,16 @@ def create_resource_manager():
     return FakeManager()
 
 
+class FakeBaremetalComputeV1Client(object):
+
+    def __init__(self, **kwargs):
+        self.instance_type = mock.Mock()
+        self.instance_type.resource_class = FakeResource(None, {})
+
+        self.instance = mock.Mock()
+        self.instance.resource_class = FakeResource(None, {})
+
+
 class FakeHTTPClient(object):
 
     def get(self):
@@ -68,12 +82,12 @@ class FakeHTTPClient(object):
         pass
 
 
-class FaksResource(base.Resource):
+class FakeResource(base.Resource):
     id = 'N/A'
 
 
 class FakeManager(base.ManagerWithFind):
-    resource_class = FaksResource
+    resource_class = FakeResource
 
     def __init__(self, api=None):
         if not api:
@@ -129,3 +143,75 @@ class FakeHTTPResponse(object):
 
     def json(self):
         return jsonutils.loads(self.content)
+
+
+class FakeInstanceType(object):
+    """Fake one instance type."""
+
+    @staticmethod
+    def create_one_instance_type(attrs=None):
+        """Create a fake instance type.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with id and other attributes
+        """
+        attrs = attrs or {}
+
+        # Set default attribute
+        instance_type_info = {
+            "created_at": "2016-09-27T02:37:21.966342+00:00",
+            "description": "fake_description",
+            "extra_specs": {},
+            "is_public": True,
+            "name": "instance-type-name-" + uuid.uuid4().hex,
+            "updated_at": None,
+            "uuid": "instance-type-id-" + uuid.uuid4().hex,
+        }
+
+        # Overwrite default attributes.
+        instance_type_info.update(attrs)
+
+        instance_type = FakeResource(
+            manager=None,
+            info=copy.deepcopy(instance_type_info),
+            loaded=True)
+        return instance_type
+
+    @staticmethod
+    def create_instance_types(attrs=None, count=2):
+        """Create multiple fake instance types.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param int count:
+            The number of instance types to fake
+        :return:
+            A list of FakeResource objects faking the instance types
+        """
+        instance_types = []
+        for i in range(0, count):
+            instance_types.append(
+                FakeInstanceType.create_one_instance_type(attrs))
+
+        return instance_types
+
+    @staticmethod
+    def get_instance_types(instance_types=None, count=2):
+        """Get an iterable Mock object with a list of faked instance types.
+
+        If instance_types list is provided, then initialize the Mock object
+        with the list. Otherwise create one.
+
+        :param List instance_types:
+            A list of FakeResource objects faking instance types
+        :param int count:
+            The number of instance types to fake
+        :return:
+            An iterable Mock object with side_effect set to a list of faked
+            instance types
+        """
+        if instance_types is None:
+            instance_types = FakeInstanceType.create_instance_types(count)
+        return mock.Mock(side_effect=instance_types)
