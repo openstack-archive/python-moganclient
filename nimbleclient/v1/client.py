@@ -14,6 +14,7 @@
 #
 
 from nimbleclient.common import http
+from nimbleclient.v1 import instance_type
 
 
 class Client(object):
@@ -22,3 +23,7 @@ class Client(object):
     def __init__(self, *args, **kwargs):
         """Initialize a new client for the Nimble v1 API."""
         self.http_client = http._construct_http_client(*args, **kwargs)
+
+        self.instance_type = instance_type.InstanceTypeManager(
+            self.http_client)
+        self.instance = None

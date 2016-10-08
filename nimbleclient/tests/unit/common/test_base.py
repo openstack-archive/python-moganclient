@@ -34,7 +34,7 @@ class TestResource(test_base.TestBase):
         self.assertEqual(4, base.getid(4))
 
         class TmpObject(object):
-            id = 4
+            uuid = 4
         self.assertEqual(4, base.getid(TmpObject))
 
     def test_init_with_attribute_info(self):
@@ -46,13 +46,13 @@ class TestResource(test_base.TestBase):
 
     def test_resource_lazy_getattr(self):
         fake_manager = mock.Mock()
-        return_resource = base.Resource(None, dict(id=mock.sentinel.fake_id,
+        return_resource = base.Resource(None, dict(uuid=mock.sentinel.fake_id,
                                                    foo='bar',
                                                    name='fake_name'))
         fake_manager.get.return_value = return_resource
 
         r = base.Resource(fake_manager,
-                          dict(id=mock.sentinel.fake_id, foo='bar'))
+                          dict(uuid=mock.sentinel.fake_id, foo='bar'))
         self.assertTrue(hasattr(r, 'foo'))
         self.assertEqual('bar', r.foo)
         self.assertFalse(r.is_loaded())
@@ -73,7 +73,7 @@ class TestResource(test_base.TestBase):
 
         # Two resources of different types: never equal
         r1 = base.Resource(None, {'id': 1})
-        r2 = fakes.FaksResource(None, {'id': 1})
+        r2 = fakes.FakeResource(None, {'id': 1})
         self.assertNotEqual(r1, r2)
 
         # Two resources with no ID: equal if their info is equal
@@ -99,8 +99,8 @@ class TestManager(test_base.TestBase):
     def test_manager_get(self, mock_get):
         mock_get.return_value = (fakes.create_response_obj_with_header(),
                                  mock.MagicMock())
-        fake_resource = fakes.FaksResource(
-            None, dict(id=fakes.FAKE_RESOURCE_ID,
+        fake_resource = fakes.FakeResource(
+            None, dict(uuid=fakes.FAKE_RESOURCE_ID,
                        name=fakes.FAKE_RESOURCE_NAME))
         result = self.fake_manager.get(fake_resource)
         self.assertIsInstance(result, base.Resource)
@@ -123,8 +123,8 @@ class TestManager(test_base.TestBase):
     def test_manager_update(self, mock_patch):
         mock_patch.return_value = (fakes.create_response_obj_with_header(),
                                    mock.MagicMock())
-        fake_resource = fakes.FaksResource(
-            None, dict(id=fakes.FAKE_RESOURCE_ID,
+        fake_resource = fakes.FakeResource(
+            None, dict(uuid=fakes.FAKE_RESOURCE_ID,
                        name=fakes.FAKE_RESOURCE_NAME))
         result = self.fake_manager.update(fake_resource)
         self.assertIsInstance(result, base.Resource)
@@ -138,8 +138,8 @@ class TestManager(test_base.TestBase):
     def test_manager_delete(self, mock_delete):
         mock_delete.return_value = (fakes.create_response_obj_with_header(),
                                     None)
-        fake_resource = fakes.FaksResource(
-            None, dict(id=fakes.FAKE_RESOURCE_ID,
+        fake_resource = fakes.FakeResource(
+            None, dict(uuid=fakes.FAKE_RESOURCE_ID,
                        name=fakes.FAKE_RESOURCE_NAME))
         result = self.fake_manager.delete(fake_resource)
         self.assertIsInstance(result, base.TupleWithMeta)
@@ -151,8 +151,8 @@ class TestManager(test_base.TestBase):
     def test_manager_create(self, mock_post):
         mock_post.return_value = (fakes.create_response_obj_with_header(),
                                   mock.MagicMock())
-        fake_resource = fakes.FaksResource(
-            None, dict(id=fakes.FAKE_RESOURCE_ID,
+        fake_resource = fakes.FakeResource(
+            None, dict(uuid=fakes.FAKE_RESOURCE_ID,
                        name=fakes.FAKE_RESOURCE_NAME))
         result = self.fake_manager.create(fake_resource)
         self.assertIsInstance(result, base.Resource)
@@ -164,9 +164,9 @@ class TestManager(test_base.TestBase):
 
     @mock.patch.object(fakes.FakeHTTPClient, 'get')
     def test_manager_find(self, mock_get):
-        fake_json_body_1 = dict(id=fakes.FAKE_RESOURCE_ID,
+        fake_json_body_1 = dict(uuid=fakes.FAKE_RESOURCE_ID,
                                 name=fakes.FAKE_RESOURCE_NAME)
-        fake_json_body_2 = dict(id='no_existed_id',
+        fake_json_body_2 = dict(uuid='no_existed_id',
                                 name='no_existed_name')
         mock_get.side_effect = [
             (fakes.create_response_obj_with_header(),
@@ -175,10 +175,10 @@ class TestManager(test_base.TestBase):
             (fakes.create_response_obj_with_header(),
              fake_json_body_1)
         ]
-        result = self.fake_manager.find(id=fakes.FAKE_RESOURCE_ID,
+        result = self.fake_manager.find(uuid=fakes.FAKE_RESOURCE_ID,
                                         name=fakes.FAKE_RESOURCE_NAME)
         self.assertIsInstance(result, base.Resource)
-        self.assertEqual(fakes.FAKE_RESOURCE_ID, result.id)
+        self.assertEqual(fakes.FAKE_RESOURCE_ID, result.uuid)
         self.assertEqual(fakes.FAKE_RESOURCE_NAME, result.name)
         self.assertTrue(result.is_loaded())
         expect_collection_url = fakes.FAKE_RESOURCE_COLLECTION_URL
@@ -194,14 +194,14 @@ class TestManager(test_base.TestBase):
                                  {'resources': []})
         self.assertRaises(exceptions.NotFound,
                           self.fake_manager.find,
-                          id=fakes.FAKE_RESOURCE_ID,
+                          uuid=fakes.FAKE_RESOURCE_ID,
                           name=fakes.FAKE_RESOURCE_NAME)
         expect_collection_url = fakes.FAKE_RESOURCE_COLLECTION_URL
         mock_get.assert_called_once_with(expect_collection_url, headers={})
 
     @mock.patch.object(fakes.FakeHTTPClient, 'get')
     def test_manager_find_more_than_one_result(self, mock_get):
-        fake_json_body_1 = dict(id=fakes.FAKE_RESOURCE_ID,
+        fake_json_body_1 = dict(uuid=fakes.FAKE_RESOURCE_ID,
                                 name=fakes.FAKE_RESOURCE_NAME)
         fake_json_body_2 = copy.deepcopy(fake_json_body_1)
         mock_get.return_value = (fakes.create_response_obj_with_header(),
@@ -209,7 +209,7 @@ class TestManager(test_base.TestBase):
                                                 fake_json_body_2]})
         self.assertRaises(exceptions.NoUniqueMatch,
                           self.fake_manager.find,
-                          id=fakes.FAKE_RESOURCE_ID,
+                          uuid=fakes.FAKE_RESOURCE_ID,
                           name=fakes.FAKE_RESOURCE_NAME)
         expect_collection_url = fakes.FAKE_RESOURCE_COLLECTION_URL
         mock_get.assert_called_once_with(expect_collection_url, headers={})
