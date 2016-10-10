@@ -164,7 +164,7 @@ class FakeInstanceType(object):
         instance_type_info = {
             "created_at": "2016-09-27T02:37:21.966342+00:00",
             "description": "fake_description",
-            "extra_specs": {},
+            "extra_specs": {"key0": "value0"},
             "is_public": True,
             "name": "instance-type-name-" + uuid.uuid4().hex,
             "updated_at": None,

@@ -43,3 +43,17 @@ class InstanceTypeManager(base.ManagerWithFind):
     def list(self):
         url = '/types'
         return self._list(url, response_key='types')
+
+    def get_extra_specs(self, instance_type):
+        url = '/types/%s/extraspecs' % base.getid(instance_type)
+        return self._get(url, return_raw=True)
+
+    def update_extra_specs(self, instance_type, extra_specs):
+        url = '/types/%s/extraspecs' % base.getid(instance_type)
+        data = extra_specs
+        return self._update(url, data=data, return_raw=True)
+
+    def delete_extra_specs(self, instance_type, key):
+        url = '/types/%(id)s/extraspecs/%(key)s' % {
+            'id': base.getid(instance_type), 'key': key}
+        return self._delete(url)
