@@ -84,10 +84,32 @@ class Manager(object):
 
         return self.convert_into_with_meta(body, resp)
 
-    def _update(self, url, data, response_key=None, headers=None):
+    def _update(self, url, data, response_key=None, return_raw=False,
+                headers=None):
         if headers is None:
             headers = {}
         resp, body = self.api.patch(url, data=data, headers=headers)
+        if return_raw:
+            if response_key:
+                body = body[response_key]
+            return self.convert_into_with_meta(body, resp)
+        # PATCH requests may not return a body
+        if body:
+            if response_key:
+                return self.resource_class(self, body[response_key], resp=resp)
+            return self.resource_class(self, body, resp=resp)
+        else:
+            return StrWithMeta(body, resp)
+
+    def _update_all(self, url, data, response_key=None, return_raw=False,
+                    headers=None):
+        if headers is None:
+            headers = {}
+        resp, body = self.api.put(url, data=data, headers=headers)
+        if return_raw:
+            if response_key:
+                body = body[response_key]
+            return self.convert_into_with_meta(body, resp)
         # PUT requests may not return a body
         if body:
             if response_key:
@@ -216,7 +238,8 @@ class RequestIdMixin(object):
         if isinstance(resp, Response):
             # Extract 'X-Openstack-Request-Id' from headers if
             # response is a Response object.
-            request_id = (resp.headers.get('x-openstack-request-id') or
+            request_id = (resp.headers.get('Openstack-Request-Id') or
+                          resp.headers.get('x-openstack-request-id') or
                           resp.headers.get('x-compute-request-id'))
         else:
             # If resp is of type string or None.

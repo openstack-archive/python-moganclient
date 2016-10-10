@@ -13,6 +13,7 @@
 #   under the License.
 #
 
+import copy
 import mock
 
 from osc_lib import utils
@@ -138,6 +139,40 @@ class TestInstanceTypeCreate(TestInstanceType):
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
 
+    @mock.patch.object(instance_type_mgr.InstanceTypeManager, '_get')
+    @mock.patch.object(instance_type_mgr.InstanceTypeManager, '_update')
+    def test_type_create_with_property(self, mock_update, mock_get,
+                                       mock_create):
+        arglist = [
+            '--property', 'key1=value1',
+            'type1',
+        ]
+        verifylist = [
+            ('property', {'key1': 'value1'}),
+            ('name', 'type1'),
+        ]
+        mock_create.return_value = self.fake_type
+        mock_get.return_value = {'extra_specs': {'key1': 'value1'}}
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        mock_create.assert_called_once_with('/types',
+                                            data={
+                                                'name': 'type1',
+                                                'is_public': True,
+                                                'description': None,
+                                            })
+        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_type)
+        mock_update.assert_called_once_with(expected_url,
+                                            data=parsed_args.property,
+                                            return_raw=True)
+        mock_get.assert_called_once_with(expected_url, return_raw=True)
+        self.assertEqual(self.columns, columns)
+        expected_data = copy.deepcopy(self.data)
+        # update extra specs
+        expected_data[2].pop('key0')
+        expected_data[2].update({'key1': 'value1'})
+        self.assertEqual(expected_data, data)
+
 
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(instance_type_mgr.InstanceTypeManager, '_delete')
@@ -240,6 +275,79 @@ class TestInstanceTypeList(TestInstanceType):
         self.assertEqual(self.list_data_long, tuple(data))
 
 
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_delete')
+@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_update')
+class TestInstanceTypeSet(TestInstanceType):
+
+    def setUp(self):
+        super(TestInstanceTypeSet, self).setUp()
+        self.cmd = instance_type.SetType(self.app, None)
+
+    def test_type_set_property(self, mock_update, mock_delete, mock_find):
+        arglist = [
+            '--property', 'key1=value1',
+            '--property', 'key2=value2',
+            'type1',
+        ]
+        verifylist = [
+            ('property', {'key1': 'value1', 'key2': 'value2'}),
+            ('type', 'type1'),
+        ]
+        mock_find.return_value = self.fake_type
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_type)
+        expected_data = {'key1': 'value1', 'key2': 'value2'}
+        mock_update.assert_called_once_with(expected_url,
+                                            data=expected_data,
+                                            return_raw=True)
+        self.assertNotCalled(mock_delete)
+        self.assertIsNone(result)
+
+    def test_type_set_clean_property(self, mock_update, mock_delete,
+                                     mock_find):
+        arglist = [
+            '--no-property',
+            'type1',
+        ]
+        verifylist = [
+            ('no_property', True),
+            ('type', 'type1'),
+        ]
+        mock_find.return_value = self.fake_type
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+        expected_url = '/types/%s/extraspecs/key0' % base.getid(self.fake_type)
+        self.assertNotCalled(mock_update)
+        mock_delete.assert_called_once_with(expected_url)
+        self.assertIsNone(result)
+
+    def test_type_set_overrider_property(self, mock_update, mock_delete,
+                                         mock_find):
+        arglist = [
+            '--property', 'key1=value1',
+            '--no-property',
+            'type1',
+        ]
+        verifylist = [
+            ('property', {'key1': 'value1'}),
+            ('no_property', True),
+            ('type', 'type1'),
+        ]
+        mock_find.return_value = self.fake_type
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_type)
+        expected_data = {'key1': 'value1'}
+        mock_update.assert_called_once_with(expected_url,
+                                            data=expected_data,
+                                            return_raw=True)
+        expected_url = '/types/%s/extraspecs/key0' % base.getid(self.fake_type)
+        mock_delete.assert_called_once_with(expected_url)
+        self.assertIsNone(result)
+
+
 @mock.patch.object(instance_type_mgr.InstanceTypeManager, '_get')
 class TestInstanceTypeShow(TestInstanceType):
 
@@ -261,3 +369,29 @@ class TestInstanceTypeShow(TestInstanceType):
         mock_get.assert_called_once_with(expected_url)
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_delete')
+class TestInstanceTypeUnset(TestInstanceType):
+
+    def setUp(self):
+        super(TestInstanceTypeUnset, self).setUp()
+        self.cmd = instance_type.UnsetType(self.app, None)
+
+    def test_type_unset_property(self, mock_delete, mock_find):
+        arglist = [
+            '--property', 'key0',
+            '--property', 'key2',
+            'type1',
+        ]
+        verifylist = [
+            ('property', ['key0', 'key2']),
+            ('type', 'type1'),
+        ]
+        mock_find.return_value = self.fake_type
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        result = self.cmd.take_action(parsed_args)
+        expected_url = '/types/%s/extraspecs/key0' % base.getid(self.fake_type)
+        mock_delete.assert_called_once_with(expected_url)
+        self.assertIsNone(result)

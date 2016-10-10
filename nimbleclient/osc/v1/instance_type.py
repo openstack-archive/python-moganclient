@@ -16,13 +16,16 @@
 
 """Nimble v1 Type action implementations"""
 
+import copy
 import logging
 
+from osc_lib.cli import parseractions
 from osc_lib.command import command
 from osc_lib import exceptions
 from osc_lib import utils
 import six
 
+from nimbleclient.common import base
 from nimbleclient.common.i18n import _
 
 
@@ -55,6 +58,13 @@ class CreateType(command.ShowOne):
             metavar="<description>",
             help=_("Type description"),
         )
+        parser.add_argument(
+            "--property",
+            metavar="<key=value>",
+            action=parseractions.KeyValueAction,
+            help=_("Property to add to this type "
+                   "(repeat option to set multiple properties)")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -73,6 +83,11 @@ class CreateType(command.ShowOne):
             description=parsed_args.description,
         )
         info.update(data._info)
+        if parsed_args.property:
+            bc_client.instance_type.update_extra_specs(data,
+                                                       parsed_args.property)
+            extra_specs = bc_client.instance_type.get_extra_specs(data)
+            info.update(extra_specs)
 
         return zip(*sorted(six.iteritems(info)))
 
@@ -157,6 +172,91 @@ class ListType(command.Lister):
                 ) for s in data))
 
 
+class SetType(command.Command):
+    """Set instance type properties"""
+
+    def get_parser(self, prog_name):
+        parser = super(SetType, self).get_parser(prog_name)
+        parser.add_argument(
+            'type',
+            metavar='<type>',
+            help=_("Type to modify (name or UUID)")
+        )
+        parser.add_argument(
+            "--property",
+            metavar="<key=value>",
+            action=parseractions.KeyValueAction,
+            help=_("Property to set on <type> "
+                   "(repeat option to set multiple properties)")
+        )
+        parser.add_argument(
+            "--no-property",
+            dest="no_property",
+            action="store_true",
+            help=_("Remove all properties from <type> "
+                   "(specify both --property and --no-property to "
+                   "overwrite the current properties)"),
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+
+        bc_client = self.app.client_manager.baremetal_compute
+        data = utils.find_resource(
+            bc_client.instance_type,
+            parsed_args.type,
+        )
+
+        set_property = None
+        del_property_key = None
+        # NOTE(RuiChen): extra specs update API is append mode, so if the
+        #                options is overwrite mode, the update and delete
+        #                properties need to be handled in client side.
+        if parsed_args.no_property and parsed_args.property:
+            # override
+            del_property_key = data.extra_specs.keys()
+            set_property = copy.deepcopy(parsed_args.property)
+        elif parsed_args.property:
+            # append
+            set_property = copy.deepcopy(parsed_args.property)
+        elif parsed_args.no_property:
+            # clean
+            del_property_key = data.extra_specs.keys()
+
+        result = 0
+        if del_property_key is not None:
+            for each_key in del_property_key:
+                try:
+                    # If the key is in the set_property, it will be updated
+                    # in the follow logic.
+                    if (set_property is None or
+                            each_key not in set_property):
+                        bc_client.instance_type.delete_extra_specs(
+                            data,
+                            each_key
+                        )
+                except Exception as e:
+                    result += 1
+                    LOG.error(_("Failed to remove type property with key "
+                                "'%(key)s': %(e)s") % {'key': each_key,
+                                                       'e': e})
+        if set_property is not None:
+            try:
+                bc_client.instance_type.update_extra_specs(
+                    data,
+                    set_property
+                )
+            except Exception as e:
+                result += 1
+                LOG.error(_("Failed to update type property with key/value "
+                            "'%(key)s': %(e)s") % {'key': set_property,
+                                                   'e': e})
+        if result > 0:
+            msg = (_("Set type %(type)s property failed.") % {
+                'type': base.getid(data)})
+            raise exceptions.CommandError(msg)
+
+
 class ShowType(command.ShowOne):
     """Display instance type details"""
 
@@ -180,3 +280,53 @@ class ShowType(command.ShowOne):
         info = {}
         info.update(data._info)
         return zip(*sorted(six.iteritems(info)))
+
+
+class UnsetType(command.Command):
+    """Unset instance type properties"""
+
+    def get_parser(self, prog_name):
+        parser = super(UnsetType, self).get_parser(prog_name)
+        parser.add_argument(
+            'type',
+            metavar='<type>',
+            help=_("Type to modify (name or UUID)")
+        )
+        parser.add_argument(
+            "--property",
+            metavar="<key>",
+            action='append',
+            help=_("Property to remove from <type> "
+                   "(repeat option to remove multiple properties)")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+
+        bc_client = self.app.client_manager.baremetal_compute
+        data = utils.find_resource(
+            bc_client.instance_type,
+            parsed_args.type,
+        )
+
+        unset_property_key = []
+        if parsed_args.property:
+            unset_property_key = list(
+                set(data.extra_specs.keys()).intersection(
+                    set(parsed_args.property)))
+
+        result = 0
+        for each_key in unset_property_key:
+            try:
+                bc_client.instance_type.delete_extra_specs(data,
+                                                           each_key)
+            except Exception as e:
+                result += 1
+                LOG.error(_("Failed to remove type property with key "
+                            "'%(key)s': %(e)s") % {'key': each_key, 'e': e})
+
+        if result > 0:
+            total = len(unset_property_key)
+            msg = (_("%(result)s of %(total)s type property failed "
+                   "to remove.") % {'result': result, 'total': total})
+            raise exceptions.CommandError(msg)
