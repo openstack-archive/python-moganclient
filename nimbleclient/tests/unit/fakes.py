@@ -21,7 +21,9 @@ from oslo_serialization import jsonutils
 from requests import Response
 
 from nimbleclient.common import base
+from nimbleclient.v1 import instance
 from nimbleclient.v1 import instance_type
+
 
 # fake request id
 FAKE_REQUEST_ID = 'req-0594c66b-6973-405c-ae2c-43fcfc00f2e3'
@@ -59,7 +61,7 @@ class FakeBaremetalComputeV1Client(object):
 
         self.instance_type = instance_type.InstanceTypeManager(
             self.fake_http_client)
-        self.instance = None
+        self.instance = instance.InstanceManager(self.fake_http_client)
 
 
 class FakeHTTPClient(object):
@@ -216,3 +218,83 @@ class FakeInstanceType(object):
         if instance_types is None:
             instance_types = FakeInstanceType.create_instance_types(count)
         return mock.Mock(side_effect=instance_types)
+
+
+class FakeInstance(object):
+    """Fake one instance."""
+
+    @staticmethod
+    def create_one_instance(attrs=None):
+        """Create a fake instance.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with uuid and other attributes
+        """
+        attrs = attrs or {}
+        attrs_data = copy.deepcopy(attrs)
+        networks = attrs_data.pop('networks', [])
+        network_info = {}
+        for network in networks:
+            network_info[network.get('uuid')] = {}
+        attrs_data["network_info"] = network_info
+
+        # Set default attribute
+        instance_info = {
+            "created_at": "2016-11-14T08:03:18.926737+00:00",
+            "description": "fake_description",
+            "image_uuid": "image-id-" + uuid.uuid4().hex,
+            "instance_type_uuid": "instance-type-id-" + uuid.uuid4().hex,
+            "links": [],
+            "name": "instance-name-" + uuid.uuid4().hex,
+            "network_info": {"net-id-" + uuid.uuid4().hex: {}},
+            "updated_at": None,
+            "uuid": "instance-id-" + uuid.uuid4().hex,
+            "availability_zone": "zone-name-" + uuid.uuid4().hex,
+            'extra': "fake_extra"
+        }
+
+        # Overwrite default attributes.
+        instance_info.update(attrs_data)
+        instance = FakeResource(
+            manager=None,
+            info=copy.deepcopy(instance_info),
+            loaded=True)
+        return instance
+
+    @staticmethod
+    def create_instances(attrs=None, count=2):
+        """Create multiple fake instances.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param int count:
+            The number of instance types to fake
+        :return:
+            A list of FakeResource objects faking the instance
+        """
+        instances = []
+        for i in range(0, count):
+            instances.append(FakeInstance.create_one_instance(attrs))
+
+        return instances
+
+    @staticmethod
+    def get_instances(instances=None, count=2):
+        """Get an iterable Mock object with a list of faked instances.
+
+        If instances list is provided, then initialize the Mock object
+        with the list. Otherwise create one.
+
+        :param List instances:
+            A list of FakeResource objects faking instances
+        :param int count:
+            The number of instances to fake
+        :return:
+            An iterable Mock object with side_effect set to a list of faked
+            instances
+        """
+        if instances is None:
+            instances = FakeInstance.create_instances(count)
+        return mock.Mock(side_effect=instances)
