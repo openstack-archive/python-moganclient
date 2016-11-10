@@ -18,4 +18,4 @@ import pbr.version
 
 
 __version__ = pbr.version.VersionInfo(
-    'nimbleclient').version_string()
+    'python-nimbleclient').version_string()
