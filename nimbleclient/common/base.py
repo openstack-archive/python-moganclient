@@ -73,7 +73,10 @@ class Manager(object):
             data = body[response_key]
         else:
             data = body
-        items = [obj_class(self, res, loaded=True) for res in data if res]
+        if all([isinstance(res, six.string_types) for res in data]):
+            items = data
+        else:
+            items = [obj_class(self, res, loaded=True) for res in data if res]
 
         return ListWithMeta(items, resp)
 
