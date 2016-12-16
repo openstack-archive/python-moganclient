@@ -55,3 +55,7 @@ class InstanceManager(base.ManagerWithFind):
     def update(self, instance_id, updates):
         url = '/instances/%s' % base.getid(instance_id)
         return self._update(url, data=updates)
+
+    def set_power_state(self, instance_id, power_state):
+        url = '/instances/%s/states/power' % base.getid(instance_id)
+        return self._update_all(url, data={'target': power_state})
