@@ -306,3 +306,32 @@ class UpdateInstance(command.ShowOne):
         info = {}
         info.update(data._info)
         return zip(*sorted(six.iteritems(info)))
+
+
+class SetInstancePowerState(command.Command):
+    """Set the power state of an instance"""
+
+    def get_parser(self, prog_name):
+        parser = super(SetInstancePowerState, self).get_parser(prog_name)
+        parser.add_argument(
+            'instance',
+            metavar='<instance>',
+            help=_("Instance to update (name or UUID)")
+        )
+        parser.add_argument(
+            "--power-state",
+            metavar="<power-state>",
+            choices=['on', 'off', 'reboot'],
+            help=_("Power state to be set to the instance, must be on of: "
+                   "'on', 'off' and 'reboot'.")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        instance = utils.find_resource(
+            bc_client.instance,
+            parsed_args.instance,
+        )
+        bc_client.instance.set_power_state(instance_id=instance.uuid,
+                                           power_state=parsed_args.power_state)
