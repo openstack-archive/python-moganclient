@@ -220,3 +220,89 @@ class ShowInstance(command.ShowOne):
         info = {}
         info.update(data._info)
         return zip(*sorted(six.iteritems(info)))
+
+
+class UpdateInstance(command.ShowOne):
+    """Update an Nimble instance"""
+
+    @staticmethod
+    def _partition_kv(kv_arg):
+        if ':' not in kv_arg:
+            msg = _("Input %s should be a pair of key/value combined "
+                    "by ':'")
+            raise exceptions.CommandError(msg)
+        kv = kv_arg.partition(":")
+        return kv[0], kv[2]
+
+    def get_parser(self, prog_name):
+        parser = super(UpdateInstance, self).get_parser(prog_name)
+        parser.add_argument(
+            'instance',
+            metavar='<instance>',
+            help=_("Instance to update (name or UUID)")
+        )
+        parser.add_argument(
+            "--description",
+            metavar="<description>",
+            help=_("Instance description"),
+        )
+        parser.add_argument(
+            "--name",
+            metavar="<description>",
+            help=_("Instance description"),
+        )
+        parser.add_argument(
+            "--add-extra",
+            action="append",
+            type=self._partition_kv,
+            metavar="<EXTRA_KEY:EXTRA_VALUE>",
+            help="A pair of key:value to be added to the extra "
+                 "field of the instance.")
+        parser.add_argument(
+            "--replace-extra",
+            action="append",
+            type=self._partition_kv,
+            metavar="<EXTRA_KEY:EXTRA_VALUE>",
+            help="A pair of key:value to be update to the extra "
+                 "field of the instance.")
+        parser.add_argument(
+            "--remove-extra",
+            action="append",
+            metavar="<EXTRA_KEY>",
+            help="Delete an item of the field of the instance with the key "
+                 "specified.")
+        return parser
+
+    def take_action(self, parsed_args):
+
+        bc_client = self.app.client_manager.baremetal_compute
+        instance = utils.find_resource(
+            bc_client.instance,
+            parsed_args.instance,
+        )
+        updates = []
+        if parsed_args.description:
+            updates.append({"op": "replace",
+                            "path": "/description",
+                            "value": parsed_args.description})
+        if parsed_args.name:
+            updates.append({"op": "replace",
+                            "path": "/name",
+                            "value": parsed_args.name})
+        for key, value in parsed_args.add_extra or []:
+            updates.append({"op": "add",
+                            "path": "/extra/%s" % key,
+                            "value": value})
+
+        for key, value in parsed_args.replace_extra or []:
+            updates.append({"op": "replace",
+                            "path": "/extra/%s" % key,
+                            "value": value})
+        for key in parsed_args.remove_extra or []:
+            updates.append({"op": "remove",
+                            "path": "/extra/%s" % key})
+        data = bc_client.instance.update(instance_id=instance.uuid,
+                                         updates=updates)
+        info = {}
+        info.update(data._info)
+        return zip(*sorted(six.iteritems(info)))

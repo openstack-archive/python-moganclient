@@ -178,3 +178,83 @@ class TestInstanceCreate(TestInstance):
         self._test_create_fake_instance(mock_create, mock_find,
                                         name, type_id, image_id,
                                         networks, extra=extra_info)
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(instance_mgr.InstanceManager, '_update')
+class TestinstanceUpdate(test_base.TestBaremetalComputeV1):
+    def setUp(self):
+        super(TestinstanceUpdate, self).setUp()
+        self.cmd = instance.UpdateInstance(self.app, None)
+        self.fake_instance = fakes.FakeInstance.create_one_instance()
+
+    def test_instance_update_description(self, mock_update, mock_find):
+        mock_find.return_value = self.fake_instance
+        arglist = [
+            '--description', 'test_description',
+            self.fake_instance.uuid]
+        verifylist = [
+            ('instance', self.fake_instance.uuid),
+            ('description', 'test_description')]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        mock_update.assert_called_with(
+            '/instances/%s' % self.fake_instance.uuid,
+            data=[{'path': '/description',
+                   'value': 'test_description',
+                   'op': 'replace'}])
+
+    def test_instance_update_add_extra(self, mock_update, mock_find):
+        mock_find.return_value = self.fake_instance
+        arglist = [
+            '--add-extra', 'extra_key:extra_value',
+            self.fake_instance.uuid]
+        verifylist = [
+            ('instance', self.fake_instance.uuid),
+            ('add_extra', [('extra_key', 'extra_value')])]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        mock_update.assert_called_with(
+            '/instances/%s' % self.fake_instance.uuid,
+            data=[{'path': '/extra/extra_key',
+                   'value': 'extra_value',
+                   'op': 'add'}])
+
+    def test_instance_update_add_replace_remove_multi_extra(
+            self, mock_update, mock_find):
+        mock_find.return_value = self.fake_instance
+        arglist = [
+            '--add-extra', 'add_key1:add_value1',
+            '--add-extra', 'add_key2:add_value2',
+            '--replace-extra', 'replace_key1:replace_value1',
+            '--replace-extra', 'replace_key2:replace_value2',
+            '--remove-extra', 'remove_key1',
+            '--remove-extra', 'remove_key2',
+            self.fake_instance.uuid]
+        verifylist = [
+            ('instance', self.fake_instance.uuid),
+            ('add_extra', [('add_key1', 'add_value1'),
+                           ('add_key2', 'add_value2')]),
+            ('replace_extra', [('replace_key1', 'replace_value1'),
+                               ('replace_key2', 'replace_value2')]),
+            ('remove_extra', ['remove_key1', 'remove_key2'])]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        mock_update.assert_called_with(
+            '/instances/%s' % self.fake_instance.uuid,
+            data=[{'path': '/extra/add_key1',
+                   'value': 'add_value1',
+                   'op': 'add'},
+                  {'path': '/extra/add_key2',
+                   'value': 'add_value2',
+                   'op': 'add'},
+                  {'path': '/extra/replace_key1',
+                   'value': 'replace_value1',
+                   'op': 'replace'},
+                  {'path': '/extra/replace_key2',
+                   'value': 'replace_value2',
+                   'op': 'replace'},
+                  {'path': '/extra/remove_key1',
+                   'op': 'remove'},
+                  {'path': '/extra/remove_key2',
+                   'op': 'remove'}])
