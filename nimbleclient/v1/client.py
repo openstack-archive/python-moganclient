@@ -14,6 +14,7 @@
 #
 
 from nimbleclient.common import http
+from nimbleclient.v1 import availability_zone
 from nimbleclient.v1 import instance
 from nimbleclient.v1 import instance_type
 
@@ -28,3 +29,5 @@ class Client(object):
         self.instance_type = instance_type.InstanceTypeManager(
             self.http_client)
         self.instance = instance.InstanceManager(self.http_client)
+        self.availability_zone = availability_zone.AvailabilityZoneManager(
+            self.http_client)
