@@ -26,14 +26,6 @@ import six
 from nimbleclient.common import exceptions
 
 
-# Python 2.4 compat
-try:
-    all
-except NameError:
-    def all(iterable):
-        return True not in (not x for x in iterable)
-
-
 def getid(obj):
     """Get obj's uuid or object itself if no uuid
 
