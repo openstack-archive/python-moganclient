@@ -16,6 +16,7 @@
 import mock
 import uuid
 
+from osc_lib.tests import utils as osc_test_utils
 from osc_lib import utils
 
 from nimbleclient.osc.v1 import instance
@@ -182,9 +183,9 @@ class TestInstanceCreate(TestInstance):
 
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(instance_mgr.InstanceManager, '_update')
-class TestinstanceUpdate(test_base.TestBaremetalComputeV1):
+class TestInstanceUpdate(test_base.TestBaremetalComputeV1):
     def setUp(self):
-        super(TestinstanceUpdate, self).setUp()
+        super(TestInstanceUpdate, self).setUp()
         self.cmd = instance.UpdateInstance(self.app, None)
         self.fake_instance = fakes.FakeInstance.create_one_instance()
 
@@ -258,3 +259,33 @@ class TestinstanceUpdate(test_base.TestBaremetalComputeV1):
                    'op': 'remove'},
                   {'path': '/extra/remove_key2',
                    'op': 'remove'}])
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(instance_mgr.InstanceManager, '_update_all')
+class TestSetInstancePowerState(test_base.TestBaremetalComputeV1):
+    def setUp(self):
+        super(TestSetInstancePowerState, self).setUp()
+        self.cmd = instance.SetInstancePowerState(self.app, None)
+        self.fake_instance = fakes.FakeInstance.create_one_instance()
+
+    def test_instance_set_power_state(self, mock_update_all, mock_find):
+        mock_find.return_value = self.fake_instance
+        args = ['--power-state', 'off', self.fake_instance.uuid]
+        verify_args = [('power_state', 'off'),
+                       ('instance', self.fake_instance.uuid)]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        mock_update_all.assert_called_with(
+            '/instances/%s/states/power' % self.fake_instance.uuid,
+            data={'target': 'off'})
+
+    def test_instance_set_invalid_power_state(self,
+                                              mock_update_all, mock_find):
+        mock_find.return_value = self.fake_instance
+        args = ['--power-state', 'non_state', self.fake_instance.uuid]
+        verify_args = [('power_state', 'off'),
+                       ('instance', self.fake_instance.uuid)]
+        self.assertRaises(osc_test_utils.ParserException,
+                          self.check_parser,
+                          self.cmd, args, verify_args)
