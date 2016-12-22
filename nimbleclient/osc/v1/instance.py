@@ -141,19 +141,29 @@ class ListInstance(command.Lister):
     def get_parser(self, prog_name):
         parser = super(ListInstance, self).get_parser(prog_name)
         parser.add_argument(
-            '--long',
+            '--detailed',
             action='store_true',
             default=False,
-            help=_("List additional fields in output")
+            help=_("List additional with details.")
         )
         return parser
+
+    @staticmethod
+    def _networks_formatter(network_info):
+        return_info = []
+        for port_uuid in network_info:
+            port_ips = []
+            for fixed_ip in network_info[port_uuid]['fixed_ips']:
+                port_ips.append(fixed_ip['ip_address'])
+            return_info.append(', '.join(port_ips))
+        return '; '.join(return_info)
 
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
 
-        data = bc_client.instance.list()
-
-        if parsed_args.long:
+        if parsed_args.detailed:
+            data = bc_client.instance.list(detailed=True)
+            formatters = {'network_info': self._networks_formatter}
             # This is the easiest way to change column headers
             column_headers = (
                 "UUID",
@@ -176,24 +186,22 @@ class ListInstance(command.Lister):
                 "network_info"
             )
         else:
+            data = bc_client.instance.list()
+            formatters = None
             column_headers = (
                 "UUID",
                 "Name",
-                "Instance Type",
                 "Status",
-                "Networks"
             )
             columns = (
                 "uuid",
                 "name",
-                "instance_type_uuid",
                 "status",
-                "network_info"
             )
 
         return (column_headers,
                 (utils.get_item_properties(
-                    s, columns,
+                    s, columns, formatters=formatters
                 ) for s in data))
 
 

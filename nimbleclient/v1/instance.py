@@ -48,8 +48,8 @@ class InstanceManager(base.ManagerWithFind):
         url = '/instances/%s' % base.getid(instance_id)
         return self._get(url)
 
-    def list(self):
-        url = '/instances'
+    def list(self, detailed=False):
+        url = '/instances/detail' if detailed else '/instances'
         return self._list(url, response_key='instances')
 
     def update(self, instance_id, updates):
