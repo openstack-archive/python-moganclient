@@ -22,8 +22,8 @@ from requests import Response
 
 from nimbleclient.common import base
 from nimbleclient.v1 import availability_zone
-from nimbleclient.v1 import instance
 from nimbleclient.v1 import instance_type
+from nimbleclient.v1 import server
 
 
 # fake request id
@@ -62,7 +62,7 @@ class FakeBaremetalComputeV1Client(object):
 
         self.instance_type = instance_type.InstanceTypeManager(
             self.fake_http_client)
-        self.instance = instance.InstanceManager(self.fake_http_client)
+        self.instance = server.ServerManager(self.fake_http_client)
         self.availability_zone = availability_zone.AvailabilityZoneManager(
             self.fake_http_client)
 
