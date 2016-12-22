@@ -16,12 +16,12 @@
 from nimbleclient.common import base
 
 
-class Instance(base.Resource):
+class Server(base.Resource):
     pass
 
 
-class InstanceManager(base.ManagerWithFind):
-    resource_class = Instance
+class ServerManager(base.ManagerWithFind):
+    resource_class = Server
 
     def create(self, name, image_uuid, instance_type_uuid, networks,
                description=None, availability_zone=None, extra=None):
@@ -40,22 +40,22 @@ class InstanceManager(base.ManagerWithFind):
             data['extra'] = extra
         return self._create(url, data=data)
 
-    def delete(self, instance_id):
-        url = '/instances/%s' % base.getid(instance_id)
+    def delete(self, server_id):
+        url = '/instances/%s' % base.getid(server_id)
         return self._delete(url)
 
-    def get(self, instance_id):
-        url = '/instances/%s' % base.getid(instance_id)
+    def get(self, server_id):
+        url = '/instances/%s' % base.getid(server_id)
         return self._get(url)
 
     def list(self, detailed=False):
         url = '/instances/detail' if detailed else '/instances'
         return self._list(url, response_key='instances')
 
-    def update(self, instance_id, updates):
-        url = '/instances/%s' % base.getid(instance_id)
+    def update(self, server_id, updates):
+        url = '/instances/%s' % base.getid(server_id)
         return self._update(url, data=updates)
 
-    def set_power_state(self, instance_id, power_state):
-        url = '/instances/%s/states/power' % base.getid(instance_id)
+    def set_power_state(self, server_id, power_state):
+        url = '/instances/%s/states/power' % base.getid(server_id)
         return self._update_all(url, data={'target': power_state})

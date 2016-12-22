@@ -309,7 +309,7 @@ class UpdateInstance(command.ShowOne):
         for key in parsed_args.remove_extra or []:
             updates.append({"op": "remove",
                             "path": "/extra/%s" % key})
-        data = bc_client.instance.update(instance_id=instance.uuid,
+        data = bc_client.instance.update(server_id=instance.uuid,
                                          updates=updates)
         info = {}
         info.update(data._info)
@@ -341,5 +341,5 @@ class SetInstancePowerState(command.Command):
             bc_client.instance,
             parsed_args.instance,
         )
-        bc_client.instance.set_power_state(instance_id=instance.uuid,
+        bc_client.instance.set_power_state(server_id=instance.uuid,
                                            power_state=parsed_args.power_state)
