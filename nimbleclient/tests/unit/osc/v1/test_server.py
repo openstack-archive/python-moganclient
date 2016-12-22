@@ -22,7 +22,7 @@ from osc_lib import utils
 from nimbleclient.osc.v1 import instance
 from nimbleclient.tests.unit import base as test_base
 from nimbleclient.tests.unit import fakes
-from nimbleclient.v1 import instance as instance_mgr
+from nimbleclient.v1 import server as instance_mgr
 
 
 class TestInstance(test_base.TestBaremetalComputeV1):
@@ -55,7 +55,7 @@ class TestInstance(test_base.TestBaremetalComputeV1):
 
 
 @mock.patch.object(utils, 'find_resource')
-@mock.patch.object(instance_mgr.InstanceManager, '_create')
+@mock.patch.object(instance_mgr.ServerManager, '_create')
 class TestInstanceCreate(TestInstance):
 
     def setUp(self):
@@ -182,7 +182,7 @@ class TestInstanceCreate(TestInstance):
 
 
 @mock.patch.object(utils, 'find_resource')
-@mock.patch.object(instance_mgr.InstanceManager, '_update')
+@mock.patch.object(instance_mgr.ServerManager, '_update')
 class TestInstanceUpdate(test_base.TestBaremetalComputeV1):
     def setUp(self):
         super(TestInstanceUpdate, self).setUp()
@@ -262,7 +262,7 @@ class TestInstanceUpdate(test_base.TestBaremetalComputeV1):
 
 
 @mock.patch.object(utils, 'find_resource')
-@mock.patch.object(instance_mgr.InstanceManager, '_update_all')
+@mock.patch.object(instance_mgr.ServerManager, '_update_all')
 class TestSetInstancePowerState(test_base.TestBaremetalComputeV1):
     def setUp(self):
         super(TestSetInstancePowerState, self).setUp()
