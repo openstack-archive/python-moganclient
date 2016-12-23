@@ -14,7 +14,7 @@
 #
 
 
-"""Nimble v1 Type action implementations"""
+"""Nimble v1 Baremetal flavor action implementations"""
 
 import copy
 import logging
@@ -28,41 +28,40 @@ import six
 from nimbleclient.common import base
 from nimbleclient.common.i18n import _
 
-
 LOG = logging.getLogger(__name__)
 
 
-class CreateType(command.ShowOne):
-    """Create a new instance type"""
+class CreateFlavor(command.ShowOne):
+    """Create a new baremetal flavor"""
 
     def get_parser(self, prog_name):
-        parser = super(CreateType, self).get_parser(prog_name)
+        parser = super(CreateFlavor, self).get_parser(prog_name)
         parser.add_argument(
             "name",
             metavar="<name>",
-            help=_("New type name")
+            help=_("New baremetal flavor name")
         )
         public_group = parser.add_mutually_exclusive_group()
         public_group.add_argument(
             "--public",
             action="store_true",
-            help=_("Type is available to other projects (default)")
+            help=_("Flavor is available to other projects (default)")
         )
         public_group.add_argument(
             "--private",
             action="store_true",
-            help=_("Type is not available to other projects")
+            help=_("Flavor is not available to other projects")
         )
         parser.add_argument(
             "--description",
             metavar="<description>",
-            help=_("Type description"),
+            help=_("Flavor description"),
         )
         parser.add_argument(
             "--property",
             metavar="<key=value>",
             action=parseractions.KeyValueAction,
-            help=_("Property to add to this type "
+            help=_("Property to add to this flavor "
                    "(repeat option to set multiple properties)")
         )
         return parser
@@ -77,59 +76,60 @@ class CreateType(command.ShowOne):
         if parsed_args.private:
             is_public = False
 
-        data = bc_client.instance_type.create(
+        data = bc_client.flavor.create(
             name=parsed_args.name,
             is_public=is_public,
             description=parsed_args.description,
         )
         info.update(data._info)
         if parsed_args.property:
-            bc_client.instance_type.update_extra_specs(data,
-                                                       parsed_args.property)
-            extra_specs = bc_client.instance_type.get_extra_specs(data)
+            bc_client.flavor.update_extra_specs(data,
+                                                parsed_args.property)
+            extra_specs = bc_client.flavor.get_extra_specs(data)
             info.update(extra_specs)
 
         return zip(*sorted(six.iteritems(info)))
 
 
-class DeleteType(command.Command):
-    """Delete existing instance type(s)"""
+class DeleteFlavor(command.Command):
+    """Delete existing baremetal flavor(s)"""
 
     def get_parser(self, prog_name):
-        parser = super(DeleteType, self).get_parser(prog_name)
+        parser = super(DeleteFlavor, self).get_parser(prog_name)
         parser.add_argument(
-            'type',
-            metavar='<type>',
+            'flavor',
+            metavar='<flavor>',
             nargs='+',
-            help=_("Type(s) to delete (name or UUID)")
+            help=_("Flavor(s) to delete (name or UUID)")
         )
         return parser
 
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
         result = 0
-        for one_type in parsed_args.type:
+        for one_flavor in parsed_args.flavor:
             try:
                 data = utils.find_resource(
-                    bc_client.instance_type, one_type)
-                bc_client.instance_type.delete(data.uuid)
+                    bc_client.flavor, one_flavor)
+                bc_client.flavor.delete(data.uuid)
             except Exception as e:
                 result += 1
-                LOG.error(_("Failed to delete type with name or UUID "
-                            "'%(type)s': %(e)s") % {'type': one_type, 'e': e})
+                LOG.error(_("Failed to delete flavor with name or UUID "
+                            "'%(flavor)s': %(e)s") %
+                          {'flavor': one_flavor, 'e': e})
 
         if result > 0:
-            total = len(parsed_args.type)
-            msg = (_("%(result)s of %(total)s types failed "
-                   "to delete.") % {'result': result, 'total': total})
+            total = len(parsed_args.flavor)
+            msg = (_("%(result)s of %(total)s flavors failed "
+                     "to delete.") % {'result': result, 'total': total})
             raise exceptions.CommandError(msg)
 
 
-class ListType(command.Lister):
-    """List all types"""
+class ListFlavor(command.Lister):
+    """List all baremetal flavors"""
 
     def get_parser(self, prog_name):
-        parser = super(ListType, self).get_parser(prog_name)
+        parser = super(ListFlavor, self).get_parser(prog_name)
         parser.add_argument(
             '--long',
             action='store_true',
@@ -141,7 +141,7 @@ class ListType(command.Lister):
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
 
-        data = bc_client.instance_type.list()
+        data = bc_client.flavor.list()
 
         if parsed_args.long:
             # This is the easiest way to change column headers
@@ -172,28 +172,28 @@ class ListType(command.Lister):
                 ) for s in data))
 
 
-class SetType(command.Command):
-    """Set instance type properties"""
+class SetFlavor(command.Command):
+    """Set baremetal flavor properties"""
 
     def get_parser(self, prog_name):
-        parser = super(SetType, self).get_parser(prog_name)
+        parser = super(SetFlavor, self).get_parser(prog_name)
         parser.add_argument(
-            'type',
-            metavar='<type>',
-            help=_("Type to modify (name or UUID)")
+            'flavor',
+            metavar='<flavor>',
+            help=_("Flavor to modify (name or UUID)")
         )
         parser.add_argument(
             "--property",
             metavar="<key=value>",
             action=parseractions.KeyValueAction,
-            help=_("Property to set on <type> "
+            help=_("Property to set on <flavor> "
                    "(repeat option to set multiple properties)")
         )
         parser.add_argument(
             "--no-property",
             dest="no_property",
             action="store_true",
-            help=_("Remove all properties from <type> "
+            help=_("Remove all properties from <flavor> "
                    "(specify both --property and --no-property to "
                    "overwrite the current properties)"),
         )
@@ -203,8 +203,8 @@ class SetType(command.Command):
 
         bc_client = self.app.client_manager.baremetal_compute
         data = utils.find_resource(
-            bc_client.instance_type,
-            parsed_args.type,
+            bc_client.flavor,
+            parsed_args.flavor,
         )
 
         set_property = None
@@ -230,51 +230,50 @@ class SetType(command.Command):
                     # If the key is in the set_property, it will be updated
                     # in the follow logic.
                     if (set_property is None or
-                            each_key not in set_property):
-                        bc_client.instance_type.delete_extra_specs(
+                                each_key not in set_property):
+                        bc_client.flavor.delete_extra_specs(
                             data,
                             each_key
                         )
                 except Exception as e:
                     result += 1
-                    LOG.error(_("Failed to remove type property with key "
+                    LOG.error(_("Failed to remove flavor property with key "
                                 "'%(key)s': %(e)s") % {'key': each_key,
                                                        'e': e})
         if set_property is not None:
             try:
-                bc_client.instance_type.update_extra_specs(
+                bc_client.flavor.update_extra_specs(
                     data,
                     set_property
                 )
             except Exception as e:
                 result += 1
-                LOG.error(_("Failed to update type property with key/value "
+                LOG.error(_("Failed to update flavor property with key/value "
                             "'%(key)s': %(e)s") % {'key': set_property,
                                                    'e': e})
         if result > 0:
-            msg = (_("Set type %(type)s property failed.") % {
-                'type': base.getid(data)})
+            msg = (_("Set flavor %(flavor)s property failed.") % {
+                'flavor': base.getid(data)})
             raise exceptions.CommandError(msg)
 
 
-class ShowType(command.ShowOne):
-    """Display instance type details"""
+class ShowFlavor(command.ShowOne):
+    """Display baremetal flavor details"""
 
     def get_parser(self, prog_name):
-        parser = super(ShowType, self).get_parser(prog_name)
+        parser = super(ShowFlavor, self).get_parser(prog_name)
         parser.add_argument(
-            'type',
-            metavar='<type>',
-            help=_("Type to display (name or UUID)")
+            'flavor',
+            metavar='<flavor>',
+            help=_("Flavor to display (name or UUID)")
         )
         return parser
 
     def take_action(self, parsed_args):
-
         bc_client = self.app.client_manager.baremetal_compute
         data = utils.find_resource(
-            bc_client.instance_type,
-            parsed_args.type,
+            bc_client.flavor,
+            parsed_args.flavor,
         )
 
         info = {}
@@ -282,21 +281,21 @@ class ShowType(command.ShowOne):
         return zip(*sorted(six.iteritems(info)))
 
 
-class UnsetType(command.Command):
-    """Unset instance type properties"""
+class UnsetFlavor(command.Command):
+    """Unset baremetal flavor properties"""
 
     def get_parser(self, prog_name):
-        parser = super(UnsetType, self).get_parser(prog_name)
+        parser = super(UnsetFlavor, self).get_parser(prog_name)
         parser.add_argument(
-            'type',
-            metavar='<type>',
-            help=_("Type to modify (name or UUID)")
+            'flavor',
+            metavar='<flavor>',
+            help=_("Flavor to modify (name or UUID)")
         )
         parser.add_argument(
             "--property",
             metavar="<key>",
             action='append',
-            help=_("Property to remove from <type> "
+            help=_("Property to remove from <flavor> "
                    "(repeat option to remove multiple properties)")
         )
         return parser
@@ -305,8 +304,8 @@ class UnsetType(command.Command):
 
         bc_client = self.app.client_manager.baremetal_compute
         data = utils.find_resource(
-            bc_client.instance_type,
-            parsed_args.type,
+            bc_client.flavor,
+            parsed_args.flavor,
         )
 
         unset_property_key = []
@@ -318,15 +317,15 @@ class UnsetType(command.Command):
         result = 0
         for each_key in unset_property_key:
             try:
-                bc_client.instance_type.delete_extra_specs(data,
+                bc_client.flavor.delete_extra_specs(data,
                                                            each_key)
             except Exception as e:
                 result += 1
-                LOG.error(_("Failed to remove type property with key "
+                LOG.error(_("Failed to remove flavor property with key "
                             "'%(key)s': %(e)s") % {'key': each_key, 'e': e})
 
         if result > 0:
             total = len(unset_property_key)
-            msg = (_("%(result)s of %(total)s type property failed "
-                   "to remove.") % {'result': result, 'total': total})
+            msg = (_("%(result)s of %(total)s flavor property failed "
+                     "to remove.") % {'result': result, 'total': total})
             raise exceptions.CommandError(msg)

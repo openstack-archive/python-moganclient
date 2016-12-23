@@ -19,14 +19,14 @@ import mock
 from osc_lib import utils
 
 from nimbleclient.common import base
-from nimbleclient.osc.v1 import instance_type
+from nimbleclient.osc.v1 import flavor
 from nimbleclient.tests.unit import base as test_base
 from nimbleclient.tests.unit import fakes
 from nimbleclient.v1 import flavor as flavor_mgr
 
 
-class TestInstanceType(test_base.TestBaremetalComputeV1):
-    fake_type = fakes.FakeInstanceType.create_one_instance_type()
+class TestFlavor(test_base.TestBaremetalComputeV1):
+    fake_flavor = fakes.FakeFlavor.create_one_flavor()
 
     columns = (
         'created_at',
@@ -39,100 +39,99 @@ class TestInstanceType(test_base.TestBaremetalComputeV1):
     )
 
     data = (
-        fake_type.created_at,
-        fake_type.description,
-        fake_type.extra_specs,
-        fake_type.is_public,
-        fake_type.name,
-        fake_type.updated_at,
-        fake_type.uuid,
+        fake_flavor.created_at,
+        fake_flavor.description,
+        fake_flavor.extra_specs,
+        fake_flavor.is_public,
+        fake_flavor.name,
+        fake_flavor.updated_at,
+        fake_flavor.uuid,
     )
 
 
 @mock.patch.object(flavor_mgr.FlavorManager, '_create')
-class TestInstanceTypeCreate(TestInstanceType):
-
+class TestFlavorCreate(TestFlavor):
     def setUp(self):
-        super(TestInstanceTypeCreate, self).setUp()
-        self.cmd = instance_type.CreateType(self.app, None)
+        super(TestFlavorCreate, self).setUp()
+        self.cmd = flavor.CreateFlavor(self.app, None)
 
-    def test_type_create(self, mock_create):
+    def test_flavor_create(self, mock_create):
         arglist = [
-            'type1',
+            'flavor1',
         ]
         verifylist = [
-            ('name', 'type1'),
+            ('name', 'flavor1'),
         ]
-        mock_create.return_value = self.fake_type
+        mock_create.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with('/types',
                                             data={
-                                                'name': 'type1',
+                                                'name': 'flavor1',
                                                 'is_public': True,
                                                 'description': None,
                                             })
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
 
-    def test_type_create_with_public(self, mock_create):
+    def test_flavor_create_with_public(self, mock_create):
         arglist = [
             '--public',
-            'type1',
+            'flavor1',
         ]
         verifylist = [
             ('public', True),
-            ('name', 'type1'),
+            ('name', 'flavor1'),
         ]
-        mock_create.return_value = self.fake_type
+        mock_create.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with('/types',
                                             data={
-                                                'name': 'type1',
+                                                'name': 'flavor1',
                                                 'is_public': True,
                                                 'description': None,
                                             })
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
 
-    def test_type_create_with_private(self, mock_create):
+    def test_flavor_create_with_private(self, mock_create):
         arglist = [
             '--private',
-            'type1',
+            'flavor1',
         ]
         verifylist = [
             ('private', True),
-            ('name', 'type1'),
+            ('name', 'flavor1'),
         ]
-        mock_create.return_value = self.fake_type
+        mock_create.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with('/types',
                                             data={
-                                                'name': 'type1',
+                                                'name': 'flavor1',
                                                 'is_public': False,
                                                 'description': None,
                                             })
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
 
-    def test_type_create_with_description(self, mock_create):
+    def test_flavor_create_with_description(self, mock_create):
         arglist = [
             '--description', 'test description.',
-            'type1',
+            'flavor1',
         ]
         verifylist = [
             ('description', 'test description.'),
-            ('name', 'type1'),
+            ('name', 'flavor1'),
         ]
-        mock_create.return_value = self.fake_type
+        mock_create.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with(
             '/types',
             data={
-                'name': 'type1',
+                'name': 'flavor1',
                 'is_public': True,
                 'description': 'test description.',
             })
@@ -141,27 +140,27 @@ class TestInstanceTypeCreate(TestInstanceType):
 
     @mock.patch.object(flavor_mgr.FlavorManager, '_get')
     @mock.patch.object(flavor_mgr.FlavorManager, '_update')
-    def test_type_create_with_property(self, mock_update, mock_get,
-                                       mock_create):
+    def test_flavor_create_with_property(self, mock_update, mock_get,
+                                         mock_create):
         arglist = [
             '--property', 'key1=value1',
-            'type1',
+            'flavor1',
         ]
         verifylist = [
             ('property', {'key1': 'value1'}),
-            ('name', 'type1'),
+            ('name', 'flavor1'),
         ]
-        mock_create.return_value = self.fake_type
+        mock_create.return_value = self.fake_flavor
         mock_get.return_value = {'extra_specs': {'key1': 'value1'}}
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with('/types',
                                             data={
-                                                'name': 'type1',
+                                                'name': 'flavor1',
                                                 'is_public': True,
                                                 'description': None,
                                             })
-        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_type)
+        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_flavor)
         mock_update.assert_called_once_with(expected_url,
                                             data=parsed_args.property,
                                             return_raw=True)
@@ -176,39 +175,38 @@ class TestInstanceTypeCreate(TestInstanceType):
 
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(flavor_mgr.FlavorManager, '_delete')
-class TestInstanceTypeDelete(TestInstanceType):
-
+class TestFlavorDelete(TestFlavor):
     def setUp(self):
-        super(TestInstanceTypeDelete, self).setUp()
-        self.cmd = instance_type.DeleteType(self.app, None)
+        super(TestFlavorDelete, self).setUp()
+        self.cmd = flavor.DeleteFlavor(self.app, None)
 
-    def test_type_delete(self, mock_delete, mock_find):
+    def test_flavor_delete(self, mock_delete, mock_find):
         arglist = [
-            'type1',
+            'flavor1',
         ]
         verifylist = [
-            ('type', ['type1']),
+            ('flavor', ['flavor1']),
         ]
-        mock_find.return_value = self.fake_type
+        mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s' % base.getid(self.fake_type)
+        expected_url = '/types/%s' % base.getid(self.fake_flavor)
         mock_delete.assert_called_once_with(expected_url)
         self.assertIsNone(result)
 
-    def test_type_multiple_delete(self, mock_delete, mock_find):
+    def test_flavor_multiple_delete(self, mock_delete, mock_find):
         arglist = [
-            'type1',
-            'type2',
-            'type3'
+            'flavor1',
+            'flavor2',
+            'flavor3'
         ]
         verifylist = [
-            ('type', ['type1', 'type2', 'type3']),
+            ('flavor', ['flavor1', 'flavor2', 'flavor3']),
         ]
-        mock_find.return_value = self.fake_type
+        mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s' % base.getid(self.fake_type)
+        expected_url = '/types/%s' % base.getid(self.fake_flavor)
         expected_call = [mock.call(expected_url), mock.call(expected_url),
                          mock.call(expected_url)]
         mock_delete.assert_has_calls(expected_call)
@@ -216,8 +214,7 @@ class TestInstanceTypeDelete(TestInstanceType):
 
 
 @mock.patch.object(flavor_mgr.FlavorManager, '_list')
-class TestInstanceTypeList(TestInstanceType):
-
+class TestFlavorList(TestFlavor):
     list_columns = (
         "UUID",
         "Name",
@@ -233,41 +230,41 @@ class TestInstanceTypeList(TestInstanceType):
     )
 
     list_data = ((
-        TestInstanceType.fake_type.uuid,
-        TestInstanceType.fake_type.name,
-        TestInstanceType.fake_type.is_public,
-    ), )
+                     TestFlavor.fake_flavor.uuid,
+                     TestFlavor.fake_flavor.name,
+                     TestFlavor.fake_flavor.is_public,
+                 ),)
 
     list_data_long = ((
-        TestInstanceType.fake_type.uuid,
-        TestInstanceType.fake_type.name,
-        TestInstanceType.fake_type.is_public,
-        TestInstanceType.fake_type.description,
-        TestInstanceType.fake_type.extra_specs,
-    ), )
+                          TestFlavor.fake_flavor.uuid,
+                          TestFlavor.fake_flavor.name,
+                          TestFlavor.fake_flavor.is_public,
+                          TestFlavor.fake_flavor.description,
+                          TestFlavor.fake_flavor.extra_specs,
+                      ),)
 
     def setUp(self):
-        super(TestInstanceTypeList, self).setUp()
-        self.cmd = instance_type.ListType(self.app, None)
+        super(TestFlavorList, self).setUp()
+        self.cmd = flavor.ListFlavor(self.app, None)
 
-    def test_type_list(self, mock_list):
+    def test_flavor_list(self, mock_list):
         arglist = []
         verifylist = []
-        mock_list.return_value = [self.fake_type]
+        mock_list.return_value = [self.fake_flavor]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_list.assert_called_once_with('/types', response_key='types')
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
 
-    def test_type_list_with_long(self, mock_list):
+    def test_flavor_list_with_long(self, mock_list):
         arglist = [
             '--long',
         ]
         verifylist = [
             ('long', True),
         ]
-        mock_list.return_value = [self.fake_type]
+        mock_list.return_value = [self.fake_flavor]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_list.assert_called_once_with('/types', response_key='types')
@@ -278,26 +275,25 @@ class TestInstanceTypeList(TestInstanceType):
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(flavor_mgr.FlavorManager, '_delete')
 @mock.patch.object(flavor_mgr.FlavorManager, '_update')
-class TestInstanceTypeSet(TestInstanceType):
-
+class TestFlavorSet(TestFlavor):
     def setUp(self):
-        super(TestInstanceTypeSet, self).setUp()
-        self.cmd = instance_type.SetType(self.app, None)
+        super(TestFlavorSet, self).setUp()
+        self.cmd = flavor.SetFlavor(self.app, None)
 
-    def test_type_set_property(self, mock_update, mock_delete, mock_find):
+    def test_flavor_set_property(self, mock_update, mock_delete, mock_find):
         arglist = [
             '--property', 'key1=value1',
             '--property', 'key2=value2',
-            'type1',
+            'flavor1',
         ]
         verifylist = [
             ('property', {'key1': 'value1', 'key2': 'value2'}),
-            ('type', 'type1'),
+            ('flavor', 'flavor1'),
         ]
-        mock_find.return_value = self.fake_type
+        mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_type)
+        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_flavor)
         expected_data = {'key1': 'value1', 'key2': 'value2'}
         mock_update.assert_called_once_with(expected_url,
                                             data=expected_data,
@@ -305,67 +301,66 @@ class TestInstanceTypeSet(TestInstanceType):
         self.assertNotCalled(mock_delete)
         self.assertIsNone(result)
 
-    def test_type_set_clean_property(self, mock_update, mock_delete,
-                                     mock_find):
+    def test_flavor_set_clean_property(self, mock_update, mock_delete,
+                                       mock_find):
         arglist = [
             '--no-property',
-            'type1',
+            'flavor1',
         ]
         verifylist = [
             ('no_property', True),
-            ('type', 'type1'),
+            ('flavor', 'flavor1'),
         ]
-        mock_find.return_value = self.fake_type
+        mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s/extraspecs/key0' % base.getid(self.fake_type)
+        expected_url = '/types/%s/extraspecs/key0' % base.getid(self.fake_flavor)
         self.assertNotCalled(mock_update)
         mock_delete.assert_called_once_with(expected_url)
         self.assertIsNone(result)
 
-    def test_type_set_overrider_property(self, mock_update, mock_delete,
-                                         mock_find):
+    def test_flavor_set_overrider_property(self, mock_update, mock_delete,
+                                           mock_find):
         arglist = [
             '--property', 'key1=value1',
             '--no-property',
-            'type1',
+            'flavor1',
         ]
         verifylist = [
             ('property', {'key1': 'value1'}),
             ('no_property', True),
-            ('type', 'type1'),
+            ('flavor', 'flavor1'),
         ]
-        mock_find.return_value = self.fake_type
+        mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_type)
+        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_flavor)
         expected_data = {'key1': 'value1'}
         mock_update.assert_called_once_with(expected_url,
                                             data=expected_data,
                                             return_raw=True)
-        expected_url = '/types/%s/extraspecs/key0' % base.getid(self.fake_type)
+        expected_url = '/types/%s/extraspecs/key0' % base.getid(self.fake_flavor)
         mock_delete.assert_called_once_with(expected_url)
         self.assertIsNone(result)
 
 
 @mock.patch.object(flavor_mgr.FlavorManager, '_get')
-class TestInstanceTypeShow(TestInstanceType):
-
+class TestFlavorShow(TestFlavor):
     def setUp(self):
-        super(TestInstanceTypeShow, self).setUp()
-        self.cmd = instance_type.ShowType(self.app, None)
+        super(TestFlavorShow, self).setUp()
+        self.cmd = flavor.ShowFlavor(self.app, None)
 
-    def test_type_show(self, mock_get):
+    def test_flavor_show(self, mock_get):
         arglist = [
-            'type1',
+            'flavor1',
         ]
         verifylist = [
-            ('type', 'type1'),
+            ('flavor', 'flavor1'),
         ]
-        mock_get.return_value = self.fake_type
+        mock_get.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s' % parsed_args.type
+        expected_url = '/types/%s' % parsed_args.flavor
         mock_get.assert_called_once_with(expected_url)
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
@@ -373,25 +368,24 @@ class TestInstanceTypeShow(TestInstanceType):
 
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(flavor_mgr.FlavorManager, '_delete')
-class TestInstanceTypeUnset(TestInstanceType):
-
+class TestFlavorUnset(TestFlavor):
     def setUp(self):
-        super(TestInstanceTypeUnset, self).setUp()
-        self.cmd = instance_type.UnsetType(self.app, None)
+        super(TestFlavorUnset, self).setUp()
+        self.cmd = flavor.UnsetFlavor(self.app, None)
 
-    def test_type_unset_property(self, mock_delete, mock_find):
+    def test_flavor_unset_property(self, mock_delete, mock_find):
         arglist = [
             '--property', 'key0',
             '--property', 'key2',
-            'type1',
+            'flavor1',
         ]
         verifylist = [
             ('property', ['key0', 'key2']),
-            ('type', 'type1'),
+            ('flavor', 'flavor1'),
         ]
-        mock_find.return_value = self.fake_type
+        mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s/extraspecs/key0' % base.getid(self.fake_type)
+        expected_url = '/types/%s/extraspecs/key0' % base.getid(self.fake_flavor)
         mock_delete.assert_called_once_with(expected_url)
         self.assertIsNone(result)

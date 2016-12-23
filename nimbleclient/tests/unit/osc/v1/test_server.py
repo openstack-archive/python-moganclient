@@ -63,20 +63,20 @@ class TestServerCreate(TestServer):
         self.app.client_manager.image = mock.Mock()
 
     def _test_create_fake_server(self, mock_create, mock_find,
-                                 name, type_id, image_id, networks,
+                                 name, flavor_id, image_id, networks,
                                  description=None,
                                  availability_zone=None, extra=None):
         arglist = [
             name,
-            '--type', type_id,
+            '--flavor', flavor_id,
             '--image', image_id]
         verifylist = [
             ('name', name),
-            ('type', type_id),
+            ('flavor', flavor_id),
             ('image', image_id)]
         called_data = {'name': name,
                        'image_uuid': image_id,
-                       'instance_type_uuid': type_id,
+                       'instance_type_uuid': flavor_id,
                        'networks': networks}
         for network in networks:
             network_id = network.get('uuid')
@@ -103,11 +103,11 @@ class TestServerCreate(TestServer):
             verifylist.append(('extra', extra))
             called_data['extra'] = extra
 
-        type_obj = mock.Mock()
-        type_obj.uuid = type_id
+        flavor_obj = mock.Mock()
+        flavor_obj.uuid = flavor_id
         image_obj = mock.Mock()
         image_obj.id = image_id
-        mock_find.side_effect = [type_obj, image_obj]
+        mock_find.side_effect = [flavor_obj, image_obj]
         fk_server = fakes.FakeServer.create_one_server(called_data)
         mock_create.return_value = fk_server
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -133,50 +133,50 @@ class TestServerCreate(TestServer):
 
     def test_server_create(self, mock_create, mock_find):
         name = 'server1'
-        type_id = 'type-id-' + uuid.uuid4().hex
+        flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
         networks = [{'uuid': 'net-id-' + uuid.uuid4().hex}]
         self._test_create_fake_server(mock_create, mock_find,
-                                      name, type_id, image_id, networks)
+                                      name, flavor_id, image_id, networks)
 
     def test_server_create_with_description(self, mock_create, mock_find):
         name = 'server1'
-        type_id = 'type-id-' + uuid.uuid4().hex
+        flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
         networks = [{'uuid': 'net-id-' + uuid.uuid4().hex}]
         description = 'fake_description'
         self._test_create_fake_server(mock_create, mock_find,
-                                      name, type_id, image_id,
+                                      name, flavor_id, image_id,
                                       networks, description)
 
     def test_server_create_with_az(self, mock_create, mock_find):
         name = 'server1'
-        type_id = 'type-id-' + uuid.uuid4().hex
+        flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
         networks = [{'uuid': 'net-id-' + uuid.uuid4().hex}]
         fake_az = 'fake_availability_zone'
         self._test_create_fake_server(mock_create, mock_find,
-                                      name, type_id, image_id,
+                                      name, flavor_id, image_id,
                                       networks, availability_zone=fake_az)
 
     def test_server_create_with_port_type(self, mock_create, mock_find):
         name = 'server1'
-        type_id = 'type-id-' + uuid.uuid4().hex
+        flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
         networks = [{'uuid': 'net-id-' + uuid.uuid4().hex,
                      'port-type': 'normal'}]
         self._test_create_fake_server(mock_create, mock_find,
-                                      name, type_id, image_id,
+                                      name, flavor_id, image_id,
                                       networks)
 
     def test_server_create_with_extra(self, mock_create, mock_find):
         name = 'server1'
-        type_id = 'type-id-' + uuid.uuid4().hex
+        flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
         networks = [{'uuid': 'net-id-' + uuid.uuid4().hex}]
         extra_info = 'key1=test'
         self._test_create_fake_server(mock_create, mock_find,
-                                      name, type_id, image_id,
+                                      name, flavor_id, image_id,
                                       networks, extra=extra_info)
 
 

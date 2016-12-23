@@ -23,13 +23,13 @@ class Server(base.Resource):
 class ServerManager(base.ManagerWithFind):
     resource_class = Server
 
-    def create(self, name, image_uuid, instance_type_uuid, networks,
+    def create(self, name, image_uuid, flavor_uuid, networks,
                description=None, availability_zone=None, extra=None):
         url = '/instances'
         data = {
             'name': name,
             'image_uuid': image_uuid,
-            'instance_type_uuid': instance_type_uuid,
+            'instance_type_uuid': flavor_uuid,
             'networks': networks
         }
         if availability_zone is not None:
