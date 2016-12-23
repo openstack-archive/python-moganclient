@@ -14,7 +14,7 @@
 #
 
 
-"""Nimble v1 Instance action implementations"""
+"""Nimble v1 Baremetal server action implementations"""
 
 import logging
 
@@ -26,25 +26,24 @@ import six
 
 from nimbleclient.common.i18n import _
 
-
 LOG = logging.getLogger(__name__)
 
 
-class CreateInstance(command.ShowOne):
-    """Create a new instance"""
+class CreateServer(command.ShowOne):
+    """Create a new baremetal server"""
 
     def get_parser(self, prog_name):
-        parser = super(CreateInstance, self).get_parser(prog_name)
+        parser = super(CreateServer, self).get_parser(prog_name)
         parser.add_argument(
             "name",
             metavar="<name>",
-            help=_("New instance name")
+            help=_("New baremetal server name")
         )
         parser.add_argument(
             "--type",
             metavar="<type>",
             required=True,
-            help=_("ID or Name of instance type"),
+            help=_("ID or Name of baremetal server type"),
         )
         parser.add_argument(
             "--image",
@@ -58,23 +57,23 @@ class CreateInstance(command.ShowOne):
             required_keys=['uuid'],
             optional_keys=['port-type'],
             action=parseractions.MultiKeyValueAction,
-            help=_("Create a NIC on the instance. "
+            help=_("Create a NIC on the server. "
                    "(repeat option to create multiple NICs)"),
         )
         parser.add_argument(
             "--description",
             metavar="<description>",
-            help=_("Instance description"),
+            help=_("Baremetal server description"),
         )
         parser.add_argument(
             "--availability-zone",
             metavar="<zone-name>",
-            help=_("The availability zone for instance placement"),
+            help=_("The availability zone for the baremetal server placement"),
         )
         parser.add_argument(
             "--extra",
             metavar="<extra>",
-            help=_("The extra information for instance"),
+            help=_("The extra information for baremetal server"),
         )
         return parser
 
@@ -87,7 +86,7 @@ class CreateInstance(command.ShowOne):
             self.app.client_manager.image.images,
             parsed_args.image)
 
-        data = bc_client.instance.create(
+        data = bc_client.server.create(
             name=parsed_args.name,
             image_uuid=image_data.id,
             instance_type_uuid=type_data.uuid,
@@ -101,45 +100,45 @@ class CreateInstance(command.ShowOne):
         return zip(*sorted(six.iteritems(info)))
 
 
-class DeleteInstance(command.Command):
-    """Delete existing instance(s)"""
+class DeleteServer(command.Command):
+    """Delete existing baremetal erver(s)"""
 
     def get_parser(self, prog_name):
-        parser = super(DeleteInstance, self).get_parser(prog_name)
+        parser = super(DeleteServer, self).get_parser(prog_name)
         parser.add_argument(
-            'instance',
-            metavar='<instance>',
+            'server',
+            metavar='<server>',
             nargs='+',
-            help=_("Instance(s) to delete (name or UUID)")
+            help=_("Baremetal server(s) to delete (name or UUID)")
         )
         return parser
 
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
         result = 0
-        for one_instance in parsed_args.instance:
+        for one_server in parsed_args.server:
             try:
                 data = utils.find_resource(
-                    bc_client.instance, one_instance)
-                bc_client.instance.delete(data.uuid)
+                    bc_client.server, one_server)
+                bc_client.server.delete(data.uuid)
             except Exception as e:
                 result += 1
-                LOG.error(_("Failed to delete instance with name or UUID "
-                            "'%(instance)s': %(e)s") %
-                          {'instance': one_instance, 'e': e})
+                LOG.error(_("Failed to delete server with name or UUID "
+                            "'%(server)s': %(e)s") %
+                          {'server': one_server, 'e': e})
 
         if result > 0:
-            total = len(parsed_args.instance)
-            msg = (_("%(result)s of %(total)s instances failed "
-                   "to delete.") % {'result': result, 'total': total})
+            total = len(parsed_args.server)
+            msg = (_("%(result)s of %(total)s baremetal servers failed "
+                     "to delete.") % {'result': result, 'total': total})
             raise exceptions.CommandError(msg)
 
 
-class ListInstance(command.Lister):
-    """List all instances"""
+class ListServer(command.Lister):
+    """List all baremetal servers"""
 
     def get_parser(self, prog_name):
-        parser = super(ListInstance, self).get_parser(prog_name)
+        parser = super(ListServer, self).get_parser(prog_name)
         parser.add_argument(
             '--detailed',
             action='store_true',
@@ -162,13 +161,13 @@ class ListInstance(command.Lister):
         bc_client = self.app.client_manager.baremetal_compute
 
         if parsed_args.detailed:
-            data = bc_client.instance.list(detailed=True)
+            data = bc_client.server.list(detailed=True)
             formatters = {'network_info': self._networks_formatter}
             # This is the easiest way to change column headers
             column_headers = (
                 "UUID",
                 "Name",
-                "Instance Type",
+                "server Type",
                 "Status",
                 "Image",
                 "Description",
@@ -186,7 +185,7 @@ class ListInstance(command.Lister):
                 "network_info"
             )
         else:
-            data = bc_client.instance.list()
+            data = bc_client.server.list()
             formatters = None
             column_headers = (
                 "UUID",
@@ -205,24 +204,23 @@ class ListInstance(command.Lister):
                 ) for s in data))
 
 
-class ShowInstance(command.ShowOne):
-    """Display instance details"""
+class ShowServer(command.ShowOne):
+    """Display baremetal server details"""
 
     def get_parser(self, prog_name):
-        parser = super(ShowInstance, self).get_parser(prog_name)
+        parser = super(ShowServer, self).get_parser(prog_name)
         parser.add_argument(
-            'instance',
-            metavar='<instance>',
-            help=_("Instance to display (name or UUID)")
+            'server',
+            metavar='<server>',
+            help=_("Baremetal server to display (name or UUID)")
         )
         return parser
 
     def take_action(self, parsed_args):
-
         bc_client = self.app.client_manager.baremetal_compute
         data = utils.find_resource(
-            bc_client.instance,
-            parsed_args.instance,
+            bc_client.server,
+            parsed_args.server,
         )
 
         info = {}
@@ -230,8 +228,8 @@ class ShowInstance(command.ShowOne):
         return zip(*sorted(six.iteritems(info)))
 
 
-class UpdateInstance(command.ShowOne):
-    """Update an Nimble instance"""
+class UpdateServer(command.ShowOne):
+    """Update a baremetal server"""
 
     @staticmethod
     def _partition_kv(kv_arg):
@@ -243,21 +241,21 @@ class UpdateInstance(command.ShowOne):
         return kv[0], kv[2]
 
     def get_parser(self, prog_name):
-        parser = super(UpdateInstance, self).get_parser(prog_name)
+        parser = super(UpdateServer, self).get_parser(prog_name)
         parser.add_argument(
-            'instance',
-            metavar='<instance>',
-            help=_("Instance to update (name or UUID)")
+            'server',
+            metavar='<server>',
+            help=_("Baremetal server to update (name or UUID)")
         )
         parser.add_argument(
             "--description",
             metavar="<description>",
-            help=_("Instance description"),
+            help=_("Baremetal Server description"),
         )
         parser.add_argument(
             "--name",
             metavar="<description>",
-            help=_("Instance description"),
+            help=_("Baremetal server description"),
         )
         parser.add_argument(
             "--add-extra",
@@ -265,28 +263,28 @@ class UpdateInstance(command.ShowOne):
             type=self._partition_kv,
             metavar="<EXTRA_KEY:EXTRA_VALUE>",
             help="A pair of key:value to be added to the extra "
-                 "field of the instance.")
+                 "field of the server.")
         parser.add_argument(
             "--replace-extra",
             action="append",
             type=self._partition_kv,
             metavar="<EXTRA_KEY:EXTRA_VALUE>",
             help="A pair of key:value to be update to the extra "
-                 "field of the instance.")
+                 "field of the serve.")
         parser.add_argument(
             "--remove-extra",
             action="append",
             metavar="<EXTRA_KEY>",
-            help="Delete an item of the field of the instance with the key "
+            help="Delete an item of the field of the server with the key "
                  "specified.")
         return parser
 
     def take_action(self, parsed_args):
 
         bc_client = self.app.client_manager.baremetal_compute
-        instance = utils.find_resource(
-            bc_client.instance,
-            parsed_args.instance,
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
         )
         updates = []
         if parsed_args.description:
@@ -309,37 +307,37 @@ class UpdateInstance(command.ShowOne):
         for key in parsed_args.remove_extra or []:
             updates.append({"op": "remove",
                             "path": "/extra/%s" % key})
-        data = bc_client.instance.update(server_id=instance.uuid,
-                                         updates=updates)
+        data = bc_client.server.update(server_id=server.uuid,
+                                       updates=updates)
         info = {}
         info.update(data._info)
         return zip(*sorted(six.iteritems(info)))
 
 
-class SetInstancePowerState(command.Command):
-    """Set the power state of an instance"""
+class SetServerPowerState(command.Command):
+    """Set the power state of baremetal server"""
 
     def get_parser(self, prog_name):
-        parser = super(SetInstancePowerState, self).get_parser(prog_name)
+        parser = super(SetServerPowerState, self).get_parser(prog_name)
         parser.add_argument(
-            'instance',
-            metavar='<instance>',
-            help=_("Instance to update (name or UUID)")
+            'server',
+            metavar='<server>',
+            help=_("Baremetal server to update (name or UUID)")
         )
         parser.add_argument(
             "--power-state",
             metavar="<power-state>",
             choices=['on', 'off', 'reboot'],
-            help=_("Power state to be set to the instance, must be one of: "
-                   "'on', 'off' and 'reboot'.")
+            help=_("Power state to be set to the baremetal server, must be "
+                   "one of: 'on', 'off' and 'reboot'.")
         )
         return parser
 
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
-        instance = utils.find_resource(
-            bc_client.instance,
-            parsed_args.instance,
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
         )
-        bc_client.instance.set_power_state(server_id=instance.uuid,
-                                           power_state=parsed_args.power_state)
+        bc_client.server.set_power_state(server_id=server.uuid,
+                                         power_state=parsed_args.power_state)
