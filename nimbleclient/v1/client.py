@@ -28,6 +28,6 @@ class Client(object):
 
         self.instance_type = instance_type.InstanceTypeManager(
             self.http_client)
-        self.instance = server.ServerManager(self.http_client)
+        self.server = server.ServerManager(self.http_client)
         self.availability_zone = availability_zone.AvailabilityZoneManager(
             self.http_client)
