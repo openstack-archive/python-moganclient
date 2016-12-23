@@ -22,7 +22,7 @@ from requests import Response
 
 from nimbleclient.common import base
 from nimbleclient.v1 import availability_zone
-from nimbleclient.v1 import instance_type
+from nimbleclient.v1 import flavor
 from nimbleclient.v1 import server
 
 
@@ -60,7 +60,7 @@ class FakeBaremetalComputeV1Client(object):
     def __init__(self, **kwargs):
         self.fake_http_client = mock.Mock()
 
-        self.instance_type = instance_type.InstanceTypeManager(
+        self.instance_type = flavor.FlavorManager(
             self.fake_http_client)
         self.server = server.ServerManager(self.fake_http_client)
         self.availability_zone = availability_zone.AvailabilityZoneManager(

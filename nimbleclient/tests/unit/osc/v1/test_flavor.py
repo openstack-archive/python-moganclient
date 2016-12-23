@@ -22,7 +22,7 @@ from nimbleclient.common import base
 from nimbleclient.osc.v1 import instance_type
 from nimbleclient.tests.unit import base as test_base
 from nimbleclient.tests.unit import fakes
-from nimbleclient.v1 import instance_type as instance_type_mgr
+from nimbleclient.v1 import flavor as flavor_mgr
 
 
 class TestInstanceType(test_base.TestBaremetalComputeV1):
@@ -49,7 +49,7 @@ class TestInstanceType(test_base.TestBaremetalComputeV1):
     )
 
 
-@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_create')
+@mock.patch.object(flavor_mgr.FlavorManager, '_create')
 class TestInstanceTypeCreate(TestInstanceType):
 
     def setUp(self):
@@ -139,8 +139,8 @@ class TestInstanceTypeCreate(TestInstanceType):
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
 
-    @mock.patch.object(instance_type_mgr.InstanceTypeManager, '_get')
-    @mock.patch.object(instance_type_mgr.InstanceTypeManager, '_update')
+    @mock.patch.object(flavor_mgr.FlavorManager, '_get')
+    @mock.patch.object(flavor_mgr.FlavorManager, '_update')
     def test_type_create_with_property(self, mock_update, mock_get,
                                        mock_create):
         arglist = [
@@ -175,7 +175,7 @@ class TestInstanceTypeCreate(TestInstanceType):
 
 
 @mock.patch.object(utils, 'find_resource')
-@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_delete')
+@mock.patch.object(flavor_mgr.FlavorManager, '_delete')
 class TestInstanceTypeDelete(TestInstanceType):
 
     def setUp(self):
@@ -215,7 +215,7 @@ class TestInstanceTypeDelete(TestInstanceType):
         self.assertIsNone(result)
 
 
-@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_list')
+@mock.patch.object(flavor_mgr.FlavorManager, '_list')
 class TestInstanceTypeList(TestInstanceType):
 
     list_columns = (
@@ -276,8 +276,8 @@ class TestInstanceTypeList(TestInstanceType):
 
 
 @mock.patch.object(utils, 'find_resource')
-@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_delete')
-@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_update')
+@mock.patch.object(flavor_mgr.FlavorManager, '_delete')
+@mock.patch.object(flavor_mgr.FlavorManager, '_update')
 class TestInstanceTypeSet(TestInstanceType):
 
     def setUp(self):
@@ -348,7 +348,7 @@ class TestInstanceTypeSet(TestInstanceType):
         self.assertIsNone(result)
 
 
-@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_get')
+@mock.patch.object(flavor_mgr.FlavorManager, '_get')
 class TestInstanceTypeShow(TestInstanceType):
 
     def setUp(self):
@@ -372,7 +372,7 @@ class TestInstanceTypeShow(TestInstanceType):
 
 
 @mock.patch.object(utils, 'find_resource')
-@mock.patch.object(instance_type_mgr.InstanceTypeManager, '_delete')
+@mock.patch.object(flavor_mgr.FlavorManager, '_delete')
 class TestInstanceTypeUnset(TestInstanceType):
 
     def setUp(self):

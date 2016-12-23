@@ -15,7 +15,7 @@
 
 from nimbleclient.common import http
 from nimbleclient.v1 import availability_zone
-from nimbleclient.v1 import instance_type
+from nimbleclient.v1 import flavor
 from nimbleclient.v1 import server
 
 
@@ -26,7 +26,7 @@ class Client(object):
         """Initialize a new client for the Nimble v1 API."""
         self.http_client = http._construct_http_client(*args, **kwargs)
 
-        self.instance_type = instance_type.InstanceTypeManager(
+        self.instance_type = flavor.FlavorManager(
             self.http_client)
         self.server = server.ServerManager(self.http_client)
         self.availability_zone = availability_zone.AvailabilityZoneManager(
