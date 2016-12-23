@@ -26,7 +26,7 @@ class Client(object):
         """Initialize a new client for the Nimble v1 API."""
         self.http_client = http._construct_http_client(*args, **kwargs)
 
-        self.instance_type = flavor.FlavorManager(
+        self.flavor = flavor.FlavorManager(
             self.http_client)
         self.server = server.ServerManager(self.http_client)
         self.availability_zone = availability_zone.AvailabilityZoneManager(

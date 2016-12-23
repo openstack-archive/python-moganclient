@@ -151,12 +151,12 @@ class FakeHTTPResponse(object):
         return jsonutils.loads(self.content)
 
 
-class FakeInstanceType(object):
-    """Fake one instance type."""
+class FakeFlavor(object):
+    """Fake one baremetal flavor."""
 
     @staticmethod
-    def create_one_instance_type(attrs=None):
-        """Create a fake instance type.
+    def create_one_flavor(attrs=None):
+        """Create a fake baremetal flavor..
 
         :param Dictionary attrs:
             A dictionary with all attributes
@@ -166,61 +166,61 @@ class FakeInstanceType(object):
         attrs = attrs or {}
 
         # Set default attribute
-        instance_type_info = {
+        flavor_info = {
             "created_at": "2016-09-27T02:37:21.966342+00:00",
             "description": "fake_description",
             "extra_specs": {"key0": "value0"},
             "is_public": True,
-            "name": "instance-type-name-" + uuid.uuid4().hex,
+            "name": "flavor-name-" + uuid.uuid4().hex,
             "updated_at": None,
-            "uuid": "instance-type-id-" + uuid.uuid4().hex,
+            "uuid": "flavor-id-" + uuid.uuid4().hex,
         }
 
         # Overwrite default attributes.
-        instance_type_info.update(attrs)
+        flavor_info.update(attrs)
 
-        instance_type = FakeResource(
+        flavor = FakeResource(
             manager=None,
-            info=copy.deepcopy(instance_type_info),
+            info=copy.deepcopy(flavor_info),
             loaded=True)
-        return instance_type
+        return flavor
 
     @staticmethod
-    def create_instance_types(attrs=None, count=2):
-        """Create multiple fake instance types.
+    def create_flavors(attrs=None, count=2):
+        """Create multiple fake baremetal flavors.
 
         :param Dictionary attrs:
             A dictionary with all attributes
         :param int count:
-            The number of instance types to fake
+            The number of flavors to fake
         :return:
-            A list of FakeResource objects faking the instance types
+            A list of FakeResource objects faking the flavors
         """
-        instance_types = []
+        flavors = []
         for i in range(0, count):
-            instance_types.append(
-                FakeInstanceType.create_one_instance_type(attrs))
+            flavors.append(
+                FakeFlavor.create_one_flavor(attrs))
 
-        return instance_types
+        return flavors
 
     @staticmethod
-    def get_instance_types(instance_types=None, count=2):
-        """Get an iterable Mock object with a list of faked instance types.
+    def get_flavors(flavors=None, count=2):
+        """Get an iterable Mock object with a list of faked baremetal flavors.
 
-        If instance_types list is provided, then initialize the Mock object
+        If flavors list is provided, then initialize the Mock object
         with the list. Otherwise create one.
 
-        :param List instance_types:
-            A list of FakeResource objects faking instance types
+        :param List flavors:
+            A list of FakeResource objects faking flavors
         :param int count:
-            The number of instance types to fake
+            The number of flavors to fake
         :return:
             An iterable Mock object with side_effect set to a list of faked
-            instance types
+            baremetal flavors
         """
-        if instance_types is None:
-            instance_types = FakeInstanceType.create_instance_types(count)
-        return mock.Mock(side_effect=instance_types)
+        if flavors is None:
+            flavors = FakeFlavor.create_flavors(count)
+        return mock.Mock(side_effect=flavors)
 
 
 class FakeServer(object):
