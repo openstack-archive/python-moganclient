@@ -22,8 +22,8 @@ from requests import Response
 
 from nimbleclient.common import base
 from nimbleclient.v1 import availability_zone
-from nimbleclient.v1 import server
 from nimbleclient.v1 import instance_type
+from nimbleclient.v1 import server
 
 
 # fake request id
@@ -62,7 +62,7 @@ class FakeBaremetalComputeV1Client(object):
 
         self.instance_type = instance_type.InstanceTypeManager(
             self.fake_http_client)
-        self.instance = server.ServerManager(self.fake_http_client)
+        self.server = server.ServerManager(self.fake_http_client)
         self.availability_zone = availability_zone.AvailabilityZoneManager(
             self.fake_http_client)
 
@@ -223,12 +223,12 @@ class FakeInstanceType(object):
         return mock.Mock(side_effect=instance_types)
 
 
-class FakeInstance(object):
-    """Fake one instance."""
+class FakeServer(object):
+    """Fake one server."""
 
     @staticmethod
-    def create_one_instance(attrs=None):
-        """Create a fake instance.
+    def create_one_server(attrs=None):
+        """Create a fake server.
 
         :param Dictionary attrs:
             A dictionary with all attributes
@@ -244,60 +244,60 @@ class FakeInstance(object):
         attrs_data["network_info"] = network_info
 
         # Set default attribute
-        instance_info = {
+        server_info = {
             "created_at": "2016-11-14T08:03:18.926737+00:00",
             "description": "fake_description",
             "image_uuid": "image-id-" + uuid.uuid4().hex,
-            "instance_type_uuid": "instance-type-id-" + uuid.uuid4().hex,
+            "instance_type_uuid": "server-type-id-" + uuid.uuid4().hex,
             "links": [],
-            "name": "instance-name-" + uuid.uuid4().hex,
+            "name": "server-name-" + uuid.uuid4().hex,
             "network_info": {"net-id-" + uuid.uuid4().hex: {}},
             "updated_at": None,
-            "uuid": "instance-id-" + uuid.uuid4().hex,
+            "uuid": "server-id-" + uuid.uuid4().hex,
             "availability_zone": "zone-name-" + uuid.uuid4().hex,
             'extra': "fake_extra"
         }
 
         # Overwrite default attributes.
-        instance_info.update(attrs_data)
-        instance = FakeResource(
+        server_info.update(attrs_data)
+        server = FakeResource(
             manager=None,
-            info=copy.deepcopy(instance_info),
+            info=copy.deepcopy(server_info),
             loaded=True)
-        return instance
+        return server
 
     @staticmethod
-    def create_instances(attrs=None, count=2):
-        """Create multiple fake instances.
+    def create_servers(attrs=None, count=2):
+        """Create multiple fake servers.
 
         :param Dictionary attrs:
             A dictionary with all attributes
         :param int count:
-            The number of instance types to fake
+            The number of server types to fake
         :return:
-            A list of FakeResource objects faking the instance
+            A list of FakeResource objects faking the server
         """
-        instances = []
+        servers = []
         for i in range(0, count):
-            instances.append(FakeInstance.create_one_instance(attrs))
+            servers.append(FakeServer.create_one_server(attrs))
 
-        return instances
+        return servers
 
     @staticmethod
-    def get_instances(instances=None, count=2):
-        """Get an iterable Mock object with a list of faked instances.
+    def get_servers(servers=None, count=2):
+        """Get an iterable Mock object with a list of faked servers.
 
-        If instances list is provided, then initialize the Mock object
+        If servers list is provided, then initialize the Mock object
         with the list. Otherwise create one.
 
-        :param List instances:
-            A list of FakeResource objects faking instances
+        :param List servers:
+            A list of FakeResource objects faking servers
         :param int count:
-            The number of instances to fake
+            The number of servers to fake
         :return:
             An iterable Mock object with side_effect set to a list of faked
-            instances
+            servers
         """
-        if instances is None:
-            instances = FakeInstance.create_instances(count)
-        return mock.Mock(side_effect=instances)
+        if servers is None:
+            servers = FakeServer.create_servers(count)
+        return mock.Mock(side_effect=servers)
