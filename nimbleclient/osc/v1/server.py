@@ -40,10 +40,10 @@ class CreateServer(command.ShowOne):
             help=_("New baremetal server name")
         )
         parser.add_argument(
-            "--type",
-            metavar="<type>",
+            "--flavor",
+            metavar="<flavor>",
             required=True,
-            help=_("ID or Name of baremetal server type"),
+            help=_("ID or Name of baremetal server flavor"),
         )
         parser.add_argument(
             "--image",
@@ -79,9 +79,9 @@ class CreateServer(command.ShowOne):
 
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
-        type_data = utils.find_resource(
-            bc_client.instance_type,
-            parsed_args.type)
+        flavor_data = utils.find_resource(
+            bc_client.flavor,
+            parsed_args.flavor)
         image_data = utils.find_resource(
             self.app.client_manager.image.images,
             parsed_args.image)
@@ -89,7 +89,7 @@ class CreateServer(command.ShowOne):
         data = bc_client.server.create(
             name=parsed_args.name,
             image_uuid=image_data.id,
-            instance_type_uuid=type_data.uuid,
+            flavor_uuid=flavor_data.uuid,
             description=parsed_args.description,
             networks=parsed_args.nic,
             availability_zone=parsed_args.availability_zone,
@@ -167,7 +167,7 @@ class ListServer(command.Lister):
             column_headers = (
                 "UUID",
                 "Name",
-                "server Type",
+                "Flavor",
                 "Status",
                 "Image",
                 "Description",
