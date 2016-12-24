@@ -328,6 +328,7 @@ class SetServerPowerState(command.Command):
             "--power-state",
             metavar="<power-state>",
             choices=['on', 'off', 'reboot'],
+            required=True,
             help=_("Power state to be set to the baremetal server, must be "
                    "one of: 'on', 'off' and 'reboot'.")
         )
