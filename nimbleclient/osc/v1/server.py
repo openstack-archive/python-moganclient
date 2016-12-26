@@ -90,6 +90,9 @@ class CreateServer(command.ShowOne):
             if 'port-type' in nic:
                 nic['port_type'] = nic['port-type']
                 del nic['port-type']
+            if 'net-id' in nic:
+                nic['net_id'] = nic['net-id']
+                del nic['net-id']
 
         data = bc_client.server.create(
             name=parsed_args.name,
