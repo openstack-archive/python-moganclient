@@ -80,22 +80,25 @@ class TestServerCreate(TestServer):
             if 'port-type' in nic:
                 nic['port_type'] = nic['port-type']
                 del nic['port-type']
+            if 'net-id' in nic:
+                nic['net_id'] = nic['net-id']
+                del nic['net-id']
         called_data = {'name': name,
                        'image_uuid': image_id,
                        'instance_type_uuid': flavor_id,
                        'networks': called_networks}
         for network in networks:
-            network_id = network.get('uuid')
+            network_id = network.get('net-id')
             port_type = network.get('port-type')
             if port_type:
                 arglist.extend(
                     ['--nic',
-                     'uuid=' + network_id + ',port-type=' + port_type])
+                     'net-id=' + network_id + ',port-type=' + port_type])
                 verifylist.append(
-                    ('nic', [{'uuid': network_id, 'port-type': port_type}]))
+                    ('nic', [{'net-id': network_id, 'port-type': port_type}]))
             else:
-                arglist.extend(['--nic', 'uuid=' + network_id])
-                verifylist.append(('nic', [{'uuid': network_id}]))
+                arglist.extend(['--nic', 'net-id=' + network_id])
+                verifylist.append(('nic', [{'net-id': network_id}]))
         if description:
             arglist.extend(['--description', description])
             verifylist.append(('description', description))
@@ -141,7 +144,7 @@ class TestServerCreate(TestServer):
         name = 'server1'
         flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'uuid': 'net-id-' + uuid.uuid4().hex}]
+        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex}]
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id, networks)
 
@@ -149,7 +152,7 @@ class TestServerCreate(TestServer):
         name = 'server1'
         flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'uuid': 'net-id-' + uuid.uuid4().hex}]
+        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex}]
         description = 'fake_description'
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
@@ -159,7 +162,7 @@ class TestServerCreate(TestServer):
         name = 'server1'
         flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'uuid': 'net-id-' + uuid.uuid4().hex}]
+        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex}]
         fake_az = 'fake_availability_zone'
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
@@ -169,7 +172,7 @@ class TestServerCreate(TestServer):
         name = 'server1'
         flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'uuid': 'net-id-' + uuid.uuid4().hex,
+        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex,
                      'port-type': 'normal'}]
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
@@ -179,7 +182,7 @@ class TestServerCreate(TestServer):
         name = 'server1'
         flavor_id = 'flavor-id-' + uuid.uuid4().hex
         image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'uuid': 'net-id-' + uuid.uuid4().hex}]
+        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex}]
         extra_info = 'key1=test'
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
