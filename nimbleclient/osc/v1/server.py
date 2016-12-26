@@ -53,8 +53,8 @@ class CreateServer(command.ShowOne):
         )
         parser.add_argument(
             "--nic",
-            metavar="uuid=NETWORK[,port-type=PORT_TYPE]",
-            required_keys=['uuid'],
+            metavar="net-id=NETWORK[,port-type=PORT_TYPE]",
+            required_keys=['net-id'],
             optional_keys=['port-type'],
             action=parseractions.MultiKeyValueAction,
             help=_("Create a NIC on the server. "
@@ -90,6 +90,9 @@ class CreateServer(command.ShowOne):
             if 'port-type' in nic:
                 nic['port_type'] = nic['port-type']
                 del nic['port-type']
+            if 'net-id' in nic:
+                nic['net_id'] = nic['net-id']
+                del nic['net-id']
 
         data = bc_client.server.create(
             name=parsed_args.name,

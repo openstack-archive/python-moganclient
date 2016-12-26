@@ -80,6 +80,9 @@ class TestServerCreate(TestServer):
             if 'port-type' in nic:
                 nic['port_type'] = nic['port-type']
                 del nic['port-type']
+            if 'net-id' in nic:
+                nic['net_id'] = nic['net-id']
+                del nic['net-id']
         called_data = {'name': name,
                        'image_uuid': image_id,
                        'instance_type_uuid': flavor_id,
