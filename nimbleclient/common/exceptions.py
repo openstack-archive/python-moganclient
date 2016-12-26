@@ -16,6 +16,7 @@
 import inspect
 import sys
 
+from oslo_serialization import jsonutils
 import six
 
 from nimbleclient.common.i18n import _
@@ -418,10 +419,10 @@ def from_response(response, method, url):
     :param url: URL used for request
     """
 
-    req_id = response.headers.get("x-openstack-request-id")
-    # NOTE(hdd) true for older versions of nova and cinder
-    if not req_id:
-        req_id = response.headers.get("x-compute-request-id")
+    # NOTE(liusheng): for pecan's response, the request_id is
+    # "Openstack-Request-Id"
+    req_id = (response.headers.get("x-openstack-request-id") or
+              response.headers.get("Openstack-Request-Id"))
     kwargs = {
         "status_code": response.status_code,
         "response": response,
@@ -453,6 +454,13 @@ def from_response(response, method, url):
                     # WebOb<1.6.0 where we assume there is a single error
                     # message key to the body that has the message and details.
                     error = body.get(list(body)[0])
+                    # NOTE(liusheng): the response.json() may like this:
+                    # {u'error_message': u'{"debuginfo": null, "faultcode":
+                    # "Client", "faultstring": "error message"}'}, the
+                    # "error_message" in the body is also a json string.
+                    if isinstance(error, six.string_types):
+                        error = jsonutils.loads(error)
+
                 if hasattr(error, 'keys'):
                     kwargs['message'] = (error.get('message') or
                                          error.get('faultstring'))
