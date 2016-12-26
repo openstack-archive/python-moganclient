@@ -86,6 +86,11 @@ class CreateServer(command.ShowOne):
             self.app.client_manager.image.images,
             parsed_args.image)
 
+        for nic in parsed_args.nic:
+            if 'port-type' in nic:
+                nic['port_type'] = nic['port-type']
+                del nic['port-type']
+
         data = bc_client.server.create(
             name=parsed_args.name,
             image_uuid=image_data.id,

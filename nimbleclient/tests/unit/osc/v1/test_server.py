@@ -13,6 +13,7 @@
 #   under the License.
 #
 
+import copy
 import mock
 import uuid
 
@@ -74,10 +75,15 @@ class TestServerCreate(TestServer):
             ('name', name),
             ('flavor', flavor_id),
             ('image', image_id)]
+        called_networks = copy.deepcopy(networks)
+        for nic in called_networks:
+            if 'port-type' in nic:
+                nic['port_type'] = nic['port-type']
+                del nic['port-type']
         called_data = {'name': name,
                        'image_uuid': image_id,
                        'instance_type_uuid': flavor_id,
-                       'networks': networks}
+                       'networks': called_networks}
         for network in networks:
             network_id = network.get('uuid')
             port_type = network.get('port-type')
