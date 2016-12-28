@@ -301,6 +301,37 @@ class TestServerDelete(test_base.TestBaremetalComputeV1):
                          exc.message)
 
 
+@mock.patch.object(server_mgr.ServerManager, '_get')
+class TestServerShow(test_base.TestBaremetalComputeV1):
+    def setUp(self):
+        super(TestServerShow, self).setUp()
+        self.cmd = server.ShowServer(self.app, None)
+        self.fake_server = fakes.FakeServer.create_one_server()
+
+    def test_server_show_with_uuid_specified(self, mock_get):
+        args = [self.fake_server.uuid]
+        verify_args = [('server', self.fake_server.uuid)]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        mock_get.assert_called_once_with(
+            '/instances/%s' % self.fake_server.uuid)
+
+    @mock.patch.object(server_mgr.ServerManager, 'list')
+    def test_server_show_with_name_specified(self, mock_list, mock_get):
+        args = [self.fake_server.name]
+        verify_args = [('server', self.fake_server.name)]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        mock_get.side_effect = [exceptions.NotFound(404),
+                                exceptions.NotFound(404),
+                                self.fake_server]
+        mock_list.return_value = [self.fake_server]
+        self.cmd.take_action(parsed_args)
+        expected = [mock.call('/instances/%s' % self.fake_server.name),
+                    mock.call('/instances/%s' % self.fake_server.name),
+                    mock.call('/instances/%s' % self.fake_server.uuid)]
+        self.assertEqual(expected, mock_get.call_args_list)
+
+
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(server_mgr.ServerManager, '_update_all')
 class TestSetServerPowerState(test_base.TestBaremetalComputeV1):
