@@ -17,6 +17,7 @@ import copy
 import mock
 import uuid
 
+from osc_lib import exceptions
 from osc_lib.tests import utils as osc_test_utils
 from osc_lib import utils
 
@@ -267,6 +268,46 @@ class TestServerUpdate(test_base.TestBaremetalComputeV1):
                    'op': 'remove'},
                   {'path': '/extra/remove_key2',
                    'op': 'remove'}])
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(server_mgr.ServerManager, '_delete')
+class TestServerDelete(test_base.TestBaremetalComputeV1):
+    def setUp(self):
+        super(TestServerDelete, self).setUp()
+        self.cmd = server.DeleteServer(self.app, None)
+
+    def test_server_delete_one(self, mock_delete, mock_find):
+        fake_server = fakes.FakeServer.create_one_server()
+        mock_find.return_value = fake_server
+        args = ['server1']
+        verify_args = [('server', ['server1'])]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        mock_delete.assert_called_with('/instances/%s' % fake_server.uuid)
+
+    def test_server_delete_more_than_one(self, mock_delete, mock_find):
+        fake_servers = fakes.FakeServer.create_servers(count=3)
+        mock_find.side_effect = fake_servers
+        args = [s.name for s in fake_servers]
+        verify_args = [('server', [s.name for s in fake_servers])]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        expected = [mock.call('/instances/%s' % s.uuid) for s in fake_servers]
+        self.assertEqual(expected, mock_delete.call_args_list)
+
+    def test_server_delete_more_than_one_partly_failed(
+            self, mock_delete, mock_find):
+        fake_servers = fakes.FakeServer.create_servers(count=3)
+        mock_find.side_effect = fake_servers
+        args = [s.name for s in fake_servers]
+        verify_args = [('server', [s.name for s in fake_servers])]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        mock_delete.side_effect = [mock.Mock(), Exception(), mock.Mock()]
+        exc = self.assertRaises(exceptions.CommandError,
+                                self.cmd.take_action, parsed_args)
+        self.assertEqual('1 of 3 baremetal servers failed to delete.',
+                         str(exc))
 
 
 @mock.patch.object(utils, 'find_resource')
