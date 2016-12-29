@@ -48,8 +48,10 @@ class ServerManager(base.ManagerWithFind):
         url = '/instances/%s' % base.getid(server_id)
         return self._get(url)
 
-    def list(self, detailed=False):
+    def list(self, detailed=False, all_projects=False):
         url = '/instances/detail' if detailed else '/instances'
+        if all_projects:
+            url = '%s?%s' % (url, 'all_tenants=True')
         return self._list(url, response_key='instances')
 
     def update(self, server_id, updates):
