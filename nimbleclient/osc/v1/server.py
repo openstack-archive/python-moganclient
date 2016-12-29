@@ -153,6 +153,13 @@ class ListServer(command.Lister):
             default=False,
             help=_("List additional with details.")
         )
+        parser.add_argument(
+            '--all-tenants',
+            action='store_true',
+            default=False,
+            help=_("List the baremetal servers of all tenants, "
+                   "only available for admin users.")
+        )
         return parser
 
     @staticmethod
@@ -169,7 +176,8 @@ class ListServer(command.Lister):
         bc_client = self.app.client_manager.baremetal_compute
 
         if parsed_args.detailed:
-            data = bc_client.server.list(detailed=True)
+            data = bc_client.server.list(detailed=True,
+                                         all_tenants=parsed_args.all_tenants)
             formatters = {'network_info': self._networks_formatter}
             # This is the easiest way to change column headers
             column_headers = (
@@ -193,7 +201,7 @@ class ListServer(command.Lister):
                 "network_info"
             )
         else:
-            data = bc_client.server.list()
+            data = bc_client.server.list(all_tenants=parsed_args.all_tenants)
             formatters = None
             column_headers = (
                 "UUID",

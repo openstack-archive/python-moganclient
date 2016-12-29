@@ -354,6 +354,21 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         self.assertEqual(self.list_columns_detailed, columns)
         self.assertEqual(self.list_data_detailed, tuple(data))
 
+    def test_server_list_with_all_tenants(self, mock_list):
+        arglist = [
+            '--all-tenants',
+        ]
+        verifylist = [
+            ('all_tenants', True),
+        ]
+        mock_list.return_value = self.fake_servers
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        mock_list.assert_called_once_with('/instances?all_tenants=True',
+                                          response_key='instances')
+        self.assertEqual(self.list_columns, columns)
+        self.assertEqual(self.list_data, tuple(data))
+
 
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(server_mgr.ServerManager, '_update_all')
