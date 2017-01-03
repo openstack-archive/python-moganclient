@@ -269,6 +269,92 @@ class TestServerUpdate(test_base.TestBaremetalComputeV1):
                    'op': 'remove'}])
 
 
+@mock.patch.object(server_mgr.ServerManager, '_list')
+class TestServerList(test_base.TestBaremetalComputeV1):
+    def setUp(self):
+        super(TestServerList, self).setUp()
+        self.cmd = server.ListServer(self.app, None)
+        fake_return_net = {
+            "12cffc4a-b845-409e-b589-7c84be4b10d9": {
+                "fixed_ips": [
+                    {
+                        "ip_address": "172.24.4.4",
+                        "subnet_id": "a9d47430-f90b-4513-af5f-6315af54de7d"
+                    },
+                    {
+                        "ip_address": "2001:db8::a",
+                        "subnet_id": "5e7b3e2d-f36f-4e30-874c-16c2d126fe53"
+                    }
+                ],
+                "mac_address": "52:54:00:6c:c4:17",
+                "network": "ade2b658-929b-439f-9528-c47057960942"
+            }
+        }
+        self.fake_servers = fakes.FakeServer.create_servers(
+            attrs={'status': 'active'}, count=3)
+        for s in self.fake_servers:
+            setattr(s, 'network_info', fake_return_net)
+        self.list_columns = (
+            "UUID",
+            "Name",
+            "Status",
+        )
+
+        self.list_columns_detailed = (
+            "UUID",
+            "Name",
+            "Flavor",
+            "Status",
+            "Image",
+            "Description",
+            "Availability Zone",
+            "Networks"
+        )
+
+        self.list_data = tuple((
+            self.fake_servers[i].uuid,
+            self.fake_servers[i].name,
+            self.fake_servers[i].status,
+            ) for i in range(3))
+
+        self.list_data_detailed = tuple((
+            self.fake_servers[i].uuid,
+            self.fake_servers[i].name,
+            self.fake_servers[i].instance_type_uuid,
+            self.fake_servers[i].status,
+            self.fake_servers[i].image_uuid,
+            self.fake_servers[i].description,
+            self.fake_servers[i].availability_zone,
+            '172.24.4.4, 2001:db8::a'
+            ) for i in range(3))
+
+    def test_server_list(self, mock_list):
+        arglist = []
+        verifylist = []
+        mock_list.return_value = self.fake_servers
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        mock_list.assert_called_once_with('/instances',
+                                          response_key='instances')
+        self.assertEqual(self.list_columns, columns)
+        self.assertEqual(self.list_data, tuple(data))
+
+    def test_server_list_with_detailed(self, mock_list):
+        arglist = [
+            '--detailed',
+        ]
+        verifylist = [
+            ('detailed', True),
+        ]
+        mock_list.return_value = self.fake_servers
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        mock_list.assert_called_once_with('/instances/detail',
+                                          response_key='instances')
+        self.assertEqual(self.list_columns_detailed, columns)
+        self.assertEqual(self.list_data_detailed, tuple(data))
+
+
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(server_mgr.ServerManager, '_update_all')
 class TestSetServerPowerState(test_base.TestBaremetalComputeV1):
