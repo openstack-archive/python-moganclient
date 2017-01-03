@@ -1,6 +1,6 @@
-=================================
-python-nimbleclient Release Notes
-=================================
+================================
+python-moganclient Release Notes
+================================
 
 .. toctree::
    :maxdepth: 1

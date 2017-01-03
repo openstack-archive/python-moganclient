@@ -2,6 +2,6 @@
 Usage
 =====
 
-To use python-nimbleclient in a project::
+To use python-moganclient in a project::
 
-    import nimbleclient
+    import moganclient

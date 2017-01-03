@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = nimbleclient
+source = moganclient
 
 [report]
 ignore_errors = True

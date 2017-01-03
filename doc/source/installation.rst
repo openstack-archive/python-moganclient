@@ -4,9 +4,9 @@ Installation
 
 At the command line::
 
-    $ pip install python-nimbleclient
+    $ pip install python-moganclient
 
 Or, if you have virtualenvwrapper installed::
 
-    $ mkvirtualenv python-nimbleclient
-    $ pip install python-nimbleclient
+    $ mkvirtualenv python-moganclient
+    $ pip install python-moganclient
