@@ -1,0 +1,9 @@
+Code-Review+1: Lucky samadhiya <lucky.samadhiya@nectechnologies.in>
+Code-Review+2: Zhenguo Niu <Niu.ZGlinux@gmail.com>
+Workflow+1: Zhenguo Niu <Niu.ZGlinux@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 03 Jan 2017 08:03:32 +0000
+Reviewed-on: https://review.openstack.org/373739
+Project: openstack/python-nimbleclient
+Branch: refs/heads/master
