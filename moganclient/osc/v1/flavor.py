@@ -128,43 +128,25 @@ class DeleteFlavor(command.Command):
 class ListFlavor(command.Lister):
     """List all baremetal flavors"""
 
-    def get_parser(self, prog_name):
-        parser = super(ListFlavor, self).get_parser(prog_name)
-        parser.add_argument(
-            '--long',
-            action='store_true',
-            default=False,
-            help=_("List additional fields in output")
-        )
-        return parser
-
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
 
         data = bc_client.flavor.list()
 
-        if parsed_args.long:
-            # This is the easiest way to change column headers
-            column_headers = (
-                "UUID",
-                "Name",
-                "Is Public",
-                "Description",
-                "Properties",
-            )
-            columns = (
-                "UUID",
-                "Name",
-                "Is Public",
-                "Description",
-                "Extra Specs",
-            )
-        else:
-            column_headers = columns = (
-                "UUID",
-                "Name",
-                "Is Public",
-            )
+        column_headers = (
+            "UUID",
+            "Name",
+            "Is Public",
+            "Description",
+            "Properties",
+        )
+        columns = (
+            "UUID",
+            "Name",
+            "Is Public",
+            "Description",
+            "Extra Specs",
+        )
 
         return (column_headers,
                 (utils.get_item_properties(

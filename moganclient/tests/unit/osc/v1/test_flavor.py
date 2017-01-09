@@ -219,23 +219,11 @@ class TestFlavorList(TestFlavor):
         "UUID",
         "Name",
         "Is Public",
-    )
-
-    list_columns_long = (
-        "UUID",
-        "Name",
-        "Is Public",
         "Description",
         "Properties",
     )
 
     list_data = ((
-        TestFlavor.fake_flavor.uuid,
-        TestFlavor.fake_flavor.name,
-        TestFlavor.fake_flavor.is_public,
-        ),)
-
-    list_data_long = ((
         TestFlavor.fake_flavor.uuid,
         TestFlavor.fake_flavor.name,
         TestFlavor.fake_flavor.is_public,
@@ -256,20 +244,6 @@ class TestFlavorList(TestFlavor):
         mock_list.assert_called_once_with('/types', response_key='types')
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
-
-    def test_flavor_list_with_long(self, mock_list):
-        arglist = [
-            '--long',
-        ]
-        verifylist = [
-            ('long', True),
-        ]
-        mock_list.return_value = [self.fake_flavor]
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        columns, data = self.cmd.take_action(parsed_args)
-        mock_list.assert_called_once_with('/types', response_key='types')
-        self.assertEqual(self.list_columns_long, columns)
-        self.assertEqual(self.list_data_long, tuple(data))
 
 
 @mock.patch.object(utils, 'find_resource')
