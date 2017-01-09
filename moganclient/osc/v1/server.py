@@ -29,6 +29,41 @@ from moganclient.common.i18n import _
 LOG = logging.getLogger(__name__)
 
 
+class ServersActionBase(command.Command):
+    def _get_parser_with_action(self, prog_name, action):
+        parser = super(ServersActionBase, self).get_parser(prog_name)
+        parser.add_argument(
+            'server',
+            metavar='<server>',
+            nargs='+',
+            help=_("Baremetal server(s) to %s (name or UUID)") % action
+        )
+        return parser
+
+    def _action_multiple_items(self, parsed_args, action, method_name,
+                               **kwargs):
+        bc_client = self.app.client_manager.baremetal_compute
+        result = 0
+        for one_server in parsed_args.server:
+            try:
+                data = utils.find_resource(
+                    bc_client.server, one_server)
+                method = getattr(bc_client.server, method_name)
+                method(data.uuid, **kwargs)
+            except Exception as e:
+                result += 1
+                LOG.error(_("Failed to %(action)s server with name or UUID "
+                            "'%(server)s': %(e)s") %
+                          {'action': action, 'server': one_server, 'e': e})
+
+        if result > 0:
+            total = len(parsed_args.server)
+            msg = (_("%(result)s of %(total)s baremetal servers failed "
+                     "to %(action)s.") % {'result': result, 'total': total,
+                                          'action': action})
+            raise exceptions.CommandError(msg)
+
+
 class CreateServer(command.ShowOne):
     """Create a new baremetal server"""
 
@@ -331,31 +366,12 @@ class UpdateServer(command.ShowOne):
         return zip(*sorted(six.iteritems(info)))
 
 
-class SetServerPowerState(command.Command):
-    """Set the power state of baremetal server"""
+class StartServer(ServersActionBase):
+    """Start a baremetal server."""
 
     def get_parser(self, prog_name):
-        parser = super(SetServerPowerState, self).get_parser(prog_name)
-        parser.add_argument(
-            'server',
-            metavar='<server>',
-            help=_("Baremetal server to update (name or UUID)")
-        )
-        parser.add_argument(
-            "--power-state",
-            metavar="<power-state>",
-            choices=['on', 'off', 'reboot'],
-            required=True,
-            help=_("Power state to be set to the baremetal server, must be "
-                   "one of: 'on', 'off' and 'reboot'.")
-        )
-        return parser
+        return self._get_parser_with_action(prog_name, 'start')
 
     def take_action(self, parsed_args):
-        bc_client = self.app.client_manager.baremetal_compute
-        server = utils.find_resource(
-            bc_client.server,
-            parsed_args.server,
-        )
-        bc_client.server.set_power_state(server_id=server.uuid,
-                                         power_state=parsed_args.power_state)
+        self._action_multiple_items(parsed_args, 'start', 'set_power_state',
+                                    power_state='on')
