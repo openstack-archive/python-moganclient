@@ -54,6 +54,7 @@ class CreateServer(command.ShowOne):
         parser.add_argument(
             "--nic",
             metavar="net-id=NETWORK[,port-type=PORT_TYPE]",
+            required=True,
             required_keys=['net-id'],
             optional_keys=['port-type'],
             action=parseractions.MultiKeyValueAction,
