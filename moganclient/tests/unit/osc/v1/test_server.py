@@ -444,29 +444,65 @@ class TestServerShow(test_base.TestBaremetalComputeV1):
 
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(server_mgr.ServerManager, '_update_all')
-class TestSetServerPowerState(test_base.TestBaremetalComputeV1):
+class TestServerPowerActionBase(test_base.TestBaremetalComputeV1):
     def setUp(self):
-        super(TestSetServerPowerState, self).setUp()
-        self.cmd = server.SetServerPowerState(self.app, None)
-        self.fake_server = fakes.FakeServer.create_one_server()
+        super(TestServerPowerActionBase, self).setUp()
+        self.cmd = server.StartServer(self.app, None)
+        self.action = None
+        self.action_name = None
 
-    def test_server_set_power_state(self, mock_update_all, mock_find):
-        mock_find.return_value = self.fake_server
-        args = ['--power-state', 'off', self.fake_server.uuid]
-        verify_args = [('power_state', 'off'),
-                       ('server', self.fake_server.uuid)]
+    def _test_server_power_action_one(self, mock_update_all, mock_find):
+        fake_server = fakes.FakeServer.create_one_server()
+        mock_find.return_value = fake_server
+        args = [fake_server.uuid]
+        verify_args = [('server', [fake_server.uuid])]
         parsed_args = self.check_parser(self.cmd, args, verify_args)
         self.cmd.take_action(parsed_args)
         mock_update_all.assert_called_with(
-            '/instances/%s/states/power' % self.fake_server.uuid,
-            data={'target': 'off'})
+            '/instances/%s/states/power' % fake_server.uuid,
+            data={'target': self.action})
 
-    def test_server_set_invalid_power_state(self,
-                                            mock_update_all, mock_find):
-        mock_find.return_value = self.fake_server
-        args = ['--power-state', 'non_state', self.fake_server.uuid]
-        verify_args = [('power_state', 'off'),
-                       ('server', self.fake_server.uuid)]
-        self.assertRaises(osc_test_utils.ParserException,
-                          self.check_parser,
-                          self.cmd, args, verify_args)
+    def _test_server_power_action_multiple(self, mock_update_all,
+                                           mock_find):
+        fake_servers = fakes.FakeServer.create_servers(count=3)
+        mock_find.side_effect = fake_servers
+        args = [s.name for s in fake_servers]
+        verify_args = [('server', [s.name for s in fake_servers])]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        expected = [mock.call(
+            '/instances/%s/states/power' % s.uuid,
+            data={'target': self.action}) for s in fake_servers]
+        self.assertEqual(expected, mock_update_all.call_args_list)
+
+    def _test_server_delete_more_than_one_partly_failed(
+            self, mock_update_all, mock_find):
+        fake_servers = fakes.FakeServer.create_servers(count=3)
+        mock_find.side_effect = fake_servers
+        args = [s.name for s in fake_servers]
+        verify_args = [('server', [s.name for s in fake_servers])]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        mock_update_all.side_effect = [mock.Mock(), Exception(), mock.Mock()]
+        exc = self.assertRaises(exceptions.CommandError,
+                                self.cmd.take_action, parsed_args)
+        self.assertEqual(
+            '1 of 3 baremetal servers failed to %s.' % self.action_name,
+            str(exc))
+
+
+class TestServerStart(TestServerPowerActionBase):
+    def setUp(self):
+        super(TestServerStart, self).setUp()
+        self.action = 'on'
+        self.action_name = 'start'
+
+    def test_server_start_one(self, mock_update_all, mock_find):
+        self._test_server_power_action_one(mock_update_all, mock_find)
+
+    def test_server_start_multiple(self, mock_update_all, mock_find):
+        self._test_server_power_action_multiple(mock_update_all, mock_find)
+
+    def test_server_start_multiple_partly_failed(self,
+                                                 mock_update_all, mock_find):
+        self._test_server_delete_more_than_one_partly_failed(
+            mock_update_all, mock_find)
