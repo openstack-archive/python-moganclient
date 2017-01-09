@@ -525,3 +525,23 @@ class TestServerStop(TestServerPowerActionBase):
                                                 mock_update_all, mock_find):
         self._test_server_delete_more_than_one_partly_failed(
             mock_update_all, mock_find)
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(server_mgr.ServerManager, '_update_all')
+class TestServerReboot(TestServerPowerActionBase):
+    def setUp(self):
+        super(TestServerReboot, self).setUp()
+        self.action = 'reboot'
+        self.action_name = 'reboot'
+
+    def test_server_reboot_one(self, mock_update_all, mock_find):
+        self._test_server_power_action_one(mock_update_all, mock_find)
+
+    def test_server_reboot_multiple(self, mock_update_all, mock_find):
+        self._test_server_power_action_multiple(mock_update_all, mock_find)
+
+    def test_server_reboot_multiple_partly_failed(self,
+                                                  mock_update_all, mock_find):
+        self._test_server_delete_more_than_one_partly_failed(
+            mock_update_all, mock_find)
