@@ -386,3 +386,14 @@ class StopServer(ServersActionBase):
     def take_action(self, parsed_args):
         self._action_multiple_items(parsed_args, 'stop', 'set_power_state',
                                     power_state='off')
+
+
+class RebootServer(ServersActionBase):
+    """Reboot baremetal server(s)."""
+
+    def get_parser(self, prog_name):
+        return self._get_parser_with_action(prog_name, 'reboot')
+
+    def take_action(self, parsed_args):
+        self._action_multiple_items(parsed_args, 'reboot', 'set_power_state',
+                                    power_state='reboot')
