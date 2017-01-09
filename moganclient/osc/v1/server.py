@@ -374,3 +374,14 @@ class StartServer(ServersActionBase):
     def take_action(self, parsed_args):
         self._action_multiple_items(parsed_args, 'start', 'set_power_state',
                                     power_state='on')
+
+
+class StopServer(ServersActionBase):
+    """Stop baremetal server(s)."""
+
+    def get_parser(self, prog_name):
+        return self._get_parser_with_action(prog_name, 'stop')
+
+    def take_action(self, parsed_args):
+        self._action_multiple_items(parsed_args, 'stop', 'set_power_state',
+                                    power_state='off')
