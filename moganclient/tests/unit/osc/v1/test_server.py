@@ -300,7 +300,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             "Status",
         )
 
-        self.list_columns_detailed = (
+        self.list_columns_long = (
             "UUID",
             "Name",
             "Flavor",
@@ -317,7 +317,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             self.fake_servers[i].status,
             ) for i in range(3))
 
-        self.list_data_detailed = tuple((
+        self.list_data_long = tuple((
             self.fake_servers[i].uuid,
             self.fake_servers[i].name,
             self.fake_servers[i].instance_type_uuid,
@@ -339,20 +339,20 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
 
-    def test_server_list_with_detailed(self, mock_list):
+    def test_server_list_long(self, mock_list):
         arglist = [
-            '--detailed',
+            '--long',
         ]
         verifylist = [
-            ('detailed', True),
+            ('long', True),
         ]
         mock_list.return_value = self.fake_servers
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_list.assert_called_once_with('/instances/detail',
                                           response_key='instances')
-        self.assertEqual(self.list_columns_detailed, columns)
-        self.assertEqual(self.list_data_detailed, tuple(data))
+        self.assertEqual(self.list_columns_long, columns)
+        self.assertEqual(self.list_data_long, tuple(data))
 
     def test_server_list_with_all_projects(self, mock_list):
         arglist = [

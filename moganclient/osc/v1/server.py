@@ -184,10 +184,10 @@ class ListServer(command.Lister):
     def get_parser(self, prog_name):
         parser = super(ListServer, self).get_parser(prog_name)
         parser.add_argument(
-            '--detailed',
+            '--long',
             action='store_true',
             default=False,
-            help=_("List additional with details.")
+            help=_("List additional fields in output")
         )
         parser.add_argument(
             '--all-projects',
@@ -211,7 +211,7 @@ class ListServer(command.Lister):
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
 
-        if parsed_args.detailed:
+        if parsed_args.long:
             data = bc_client.server.list(detailed=True,
                                          all_projects=parsed_args.all_projects)
             formatters = {'network_info': self._networks_formatter}
