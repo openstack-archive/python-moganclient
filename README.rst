@@ -10,7 +10,7 @@ Note that this is a hard requirement.
 
 * Free software: Apache license
 * Documentation: http://docs.openstack.org/developer/python-moganclient
-* Source: http://git.openstack.org/cgit/openstack/python-nimbleclient
+* Source: http://git.openstack.org/cgit/openstack/python-moganclient
 * Bugs: http://bugs.launchpad.net/python-moganclient
 
 Features
