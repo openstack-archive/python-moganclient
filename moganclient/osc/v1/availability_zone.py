@@ -16,9 +16,8 @@
 
 """Mogan v1 availability zone action implementations"""
 
-import logging
-
 from osc_lib.command import command
+from oslo_log import log as logging
 
 LOG = logging.getLogger(__name__)
 

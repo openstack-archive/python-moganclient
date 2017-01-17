@@ -13,9 +13,8 @@
 #   under the License.
 #
 
-import logging
-
 from osc_lib import utils
+from oslo_log import log as logging
 
 from moganclient.common.i18n import _
 

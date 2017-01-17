@@ -13,8 +13,7 @@
 #   under the License.
 #
 
-import logging
-
+from oslo_log import log as logging
 from moganclient.common.i18n import _LE
 
 LOG = logging.getLogger(__name__)

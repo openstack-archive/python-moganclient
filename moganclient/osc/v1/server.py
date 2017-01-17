@@ -16,12 +16,11 @@
 
 """Mogan v1 Baremetal server action implementations"""
 
-import logging
-
 from osc_lib.cli import parseractions
 from osc_lib.command import command
 from osc_lib import exceptions
 from osc_lib import utils
+from oslo_log import log as logging
 import six
 
 from moganclient.common.i18n import _

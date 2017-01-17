@@ -15,11 +15,11 @@
 
 import copy
 import hashlib
-import logging
 import os
 import socket
 
 from keystoneauth1 import adapter
+from oslo_log import log as logging
 from oslo_serialization import jsonutils
 from oslo_utils import encodeutils
 from oslo_utils import importutils
