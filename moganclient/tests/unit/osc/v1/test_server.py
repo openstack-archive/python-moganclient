@@ -291,7 +291,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             }
         }
         self.fake_servers = fakes.FakeServer.create_servers(
-            attrs={'status': 'active'}, count=3)
+            attrs={'status': 'active', 'power_state': 'power on'}, count=3)
         for s in self.fake_servers:
             setattr(s, 'network_info', fake_return_net)
         self.list_columns = (
@@ -305,6 +305,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             "Name",
             "Flavor",
             "Status",
+            "Power State",
             "Image",
             "Description",
             "Availability Zone",
@@ -322,6 +323,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             self.fake_servers[i].name,
             self.fake_servers[i].instance_type_uuid,
             self.fake_servers[i].status,
+            self.fake_servers[i].power_state,
             self.fake_servers[i].image_uuid,
             self.fake_servers[i].description,
             self.fake_servers[i].availability_zone,
