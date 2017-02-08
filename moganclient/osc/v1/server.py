@@ -111,6 +111,19 @@ class CreateServer(command.ShowOne):
             metavar="<extra>",
             help=_("The extra information for baremetal server"),
         )
+        parser.add_argument(
+            "--min-count",
+            type=int,
+            metavar="<number>",
+            help=_("Create at least <number> servers (limited by quota)"),
+        )
+        parser.add_argument(
+            "--max-count",
+            type=int,
+            metavar="<number>",
+            help=_("Create up to <number> servers (limited by quota)"),
+        )
+
         return parser
 
     def take_action(self, parsed_args):
@@ -137,7 +150,9 @@ class CreateServer(command.ShowOne):
             description=parsed_args.description,
             networks=parsed_args.nic,
             availability_zone=parsed_args.availability_zone,
-            extra=parsed_args.extra
+            extra=parsed_args.extra,
+            min_count=parsed_args.min_count,
+            max_count=parsed_args.max_count
         )
         info = {}
         info.update(data._info)
