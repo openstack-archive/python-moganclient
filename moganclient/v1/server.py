@@ -24,7 +24,8 @@ class ServerManager(base.ManagerWithFind):
     resource_class = Server
 
     def create(self, name, image_uuid, flavor_uuid, networks,
-               description=None, availability_zone=None, extra=None):
+               description=None, availability_zone=None, extra=None,
+               min_count=None, max_count=None):
         url = '/instances'
         data = {
             'name': name,
@@ -38,6 +39,11 @@ class ServerManager(base.ManagerWithFind):
             data['description'] = description
         if extra is not None:
             data['extra'] = extra
+        if min_count is not None:
+            data['min_count'] = min_count
+        if max_count is not None:
+            data['max_count'] = max_count
+
         return self._create(url, data=data)
 
     def delete(self, server_id):
