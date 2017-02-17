@@ -636,3 +636,21 @@ class TestServerUnLock(TestServerLockActionBase):
                                                   mock_update_all, mock_find):
         self._test_server_lock_more_than_one_partly_failed(
             mock_update_all, mock_find)
+
+
+@mock.patch.object(server_mgr.ServerManager, 'get_network_info')
+@mock.patch.object(server_mgr.ServerManager, 'get')
+class TestServerShowNetInfo(TestServer):
+    def setUp(self):
+        super(TestServerShowNetInfo, self).setUp()
+        self.cmd = server.ShowServerNetworkInfo(self.app, None)
+        self.fake_server = fakes.FakeServer.create_one_server()
+
+    def test_server_netinfo_show(self, mock_get, mock_netinfo):
+        args = [self.fake_server.uuid]
+        verify_args = [('server', self.fake_server.uuid)]
+        mock_get.return_value = self.fake_server
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        mock_get.assert_called_once_with(self.fake_server.uuid)
+        mock_netinfo.assert_called_once_with(self.fake_server.uuid)
