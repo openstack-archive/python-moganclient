@@ -399,3 +399,25 @@ class RebootServer(ServersActionBase):
     def take_action(self, parsed_args):
         self._action_multiple_items(parsed_args, 'reboot', 'set_power_state',
                                     power_state='reboot')
+
+
+class LockServer(ServersActionBase):
+    """Lock baremetal server(s)."""
+
+    def get_parser(self, prog_name):
+        return self._get_parser_with_action(prog_name, 'lock')
+
+    def take_action(self, parsed_args):
+        self._action_multiple_items(parsed_args, 'lock', 'set_lock_state',
+                                    lock_state=True)
+
+
+class UnLockServer(ServersActionBase):
+    """UnLock baremetal server(s)."""
+
+    def get_parser(self, prog_name):
+        return self._get_parser_with_action(prog_name, 'unlock')
+
+    def take_action(self, parsed_args):
+        self._action_multiple_items(parsed_args, 'unlock', 'set_lock_state',
+                                    lock_state=False)

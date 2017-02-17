@@ -61,3 +61,7 @@ class ServerManager(base.ManagerWithFind):
     def set_power_state(self, server_id, power_state):
         url = '/instances/%s/states/power' % base.getid(server_id)
         return self._update_all(url, data={'target': power_state})
+
+    def set_lock_state(self, server_id, lock_state):
+        url = '/instances/%s/states/lock' % base.getid(server_id)
+        return self._update_all(url, data={'target': lock_state})
