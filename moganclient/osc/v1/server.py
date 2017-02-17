@@ -16,6 +16,7 @@
 
 """Mogan v1 Baremetal server action implementations"""
 
+import json
 import logging
 
 from osc_lib.cli import parseractions
@@ -436,3 +437,37 @@ class UnLockServer(ServersActionBase):
     def take_action(self, parsed_args):
         self._action_multiple_items(parsed_args, 'unlock', 'set_lock_state',
                                     lock_state=False)
+
+
+class ShowServerNetworkInfo(command.Lister):
+    """Display baremetal server details"""
+
+    def get_parser(self, prog_name):
+        parser = super(ShowServerNetworkInfo, self).get_parser(prog_name)
+        parser.add_argument(
+            'server',
+            metavar='<server>',
+            help=_("Baremetal server to display its network information (name "
+                   "or UUID)")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
+        )
+        data = bc_client.server.get_network_info(server.uuid)
+        info = data._info
+        nics = []
+        for port_id in list(info):
+            nic = {'port_id': port_id}
+            nic.update(info[port_id])
+            nics.append(nic)
+        columns = ('network', 'port_id', 'mac_address', 'fixed_ips',
+                   'floatingip', 'port_type')
+        formatters = {'fixed_ips': lambda s: json.dumps(s, indent=4)}
+        return (columns,
+                (utils.get_dict_properties(
+                    s, columns, formatters=formatters) for s in nics))
