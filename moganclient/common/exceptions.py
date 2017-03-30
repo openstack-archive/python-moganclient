@@ -406,7 +406,7 @@ class HttpVersionNotSupported(HttpServerError):
 # _code_map contains all the classes that have status_code attribute.
 _code_map = dict(
     (getattr(obj, 'status_code', None), obj)
-    for name, obj in six.iteritems(vars(sys.modules[__name__]))
+    for name, obj in vars(sys.modules[__name__]).items()
     if inspect.isclass(obj) and getattr(obj, 'status_code', False)
 )
 
