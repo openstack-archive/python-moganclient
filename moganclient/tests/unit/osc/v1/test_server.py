@@ -15,10 +15,10 @@
 
 import copy
 import mock
-import uuid
 
 from osc_lib import exceptions
 from osc_lib import utils
+from oslo_utils import uuidutils
 
 from moganclient.osc.v1 import server
 from moganclient.tests.unit import base as test_base
@@ -142,17 +142,17 @@ class TestServerCreate(TestServer):
 
     def test_server_create(self, mock_create, mock_find):
         name = 'server1'
-        flavor_id = 'flavor-id-' + uuid.uuid4().hex
-        image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex}]
+        flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
+        image_id = 'image-id-' + uuidutils.generate_uuid(dashed=False)
+        networks = [{'net-id': 'net-id-' + uuidutils.generate_uuid(dashed=False)}]
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id, networks)
 
     def test_server_create_with_description(self, mock_create, mock_find):
         name = 'server1'
-        flavor_id = 'flavor-id-' + uuid.uuid4().hex
-        image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex}]
+        flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
+        image_id = 'image-id-' + uuidutils.generate_uuid(dashed=False)
+        networks = [{'net-id': 'net-id-' + uuidutils.generate_uuid(dashed=False)}]
         description = 'fake_description'
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
@@ -160,9 +160,9 @@ class TestServerCreate(TestServer):
 
     def test_server_create_with_az(self, mock_create, mock_find):
         name = 'server1'
-        flavor_id = 'flavor-id-' + uuid.uuid4().hex
-        image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex}]
+        flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
+        image_id = 'image-id-' + uuidutils.generate_uuid(dashed=False)
+        networks = [{'net-id': 'net-id-' + uuidutils.generate_uuid(dashed=False)}]
         fake_az = 'fake_availability_zone'
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
@@ -170,9 +170,9 @@ class TestServerCreate(TestServer):
 
     def test_server_create_with_port_type(self, mock_create, mock_find):
         name = 'server1'
-        flavor_id = 'flavor-id-' + uuid.uuid4().hex
-        image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex,
+        flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
+        image_id = 'image-id-' + uuidutils.generate_uuid(dashed=False)
+        networks = [{'net-id': 'net-id-' + uuidutils.generate_uuid(dashed=False),
                      'port-type': 'normal'}]
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
@@ -180,9 +180,9 @@ class TestServerCreate(TestServer):
 
     def test_server_create_with_extra(self, mock_create, mock_find):
         name = 'server1'
-        flavor_id = 'flavor-id-' + uuid.uuid4().hex
-        image_id = 'image-id-' + uuid.uuid4().hex
-        networks = [{'net-id': 'net-id-' + uuid.uuid4().hex}]
+        flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
+        image_id = 'image-id-' + uuidutils.generate_uuid(dashed=False) 
+        networks = [{'net-id': 'net-id-' + uuidutils.generate_uuid(dashed=False)}]
         extra_info = 'key1=test'
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
