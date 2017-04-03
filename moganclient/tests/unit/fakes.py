@@ -14,10 +14,10 @@
 #
 
 import copy
-import uuid
 
 import mock
 from oslo_serialization import jsonutils
+from oslo_utils import uuidutils
 from requests import Response
 
 from moganclient.common import base
@@ -171,9 +171,9 @@ class FakeFlavor(object):
             "description": "fake_description",
             "extra_specs": {"key0": "value0"},
             "is_public": True,
-            "name": "flavor-name-" + uuid.uuid4().hex,
+            "name": "flavor-name-" + uuidutils.generate_uuid(dashed=False),
             "updated_at": None,
-            "uuid": "flavor-id-" + uuid.uuid4().hex,
+            "uuid": "flavor-id-" + uuidutils.generate_uuid(dashed=False),
         }
 
         # Overwrite default attributes.
@@ -247,14 +247,19 @@ class FakeServer(object):
         server_info = {
             "created_at": "2016-11-14T08:03:18.926737+00:00",
             "description": "fake_description",
-            "image_uuid": "image-id-" + uuid.uuid4().hex,
-            "instance_type_uuid": "server-type-id-" + uuid.uuid4().hex,
+            "image_uuid": "image-id-" + uuidutils.generate_uuid(dashed=False),
+            "instance_type_uuid": "server-type-id-" + uuidutils.generate_uuid(
+                dashed=False),
             "links": [],
-            "name": "server-name-" + uuid.uuid4().hex,
-            "network_info": {"net-id-" + uuid.uuid4().hex: {}},
+            "name": "server-name-" + uuidutils.generate_uuid(
+                dashed=False),
+            "network_info": {"net-id-" + uuidutils.generate_uuid(
+                dashed=False): {}},
             "updated_at": None,
-            "uuid": "server-id-" + uuid.uuid4().hex,
-            "availability_zone": "zone-name-" + uuid.uuid4().hex,
+            "uuid": "server-id-" + uuidutils.generate_uuid(
+                dashed=False),
+            "availability_zone": "zone-name-" + uuidutils.generate_uuid(
+                dashed=False),
             'extra': "fake_extra"
         }
 
