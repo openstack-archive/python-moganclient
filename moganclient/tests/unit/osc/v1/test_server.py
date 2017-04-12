@@ -309,36 +309,40 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             "UUID",
             "Name",
             "Status",
+            'Networks',
+            'Image'
         )
 
         self.list_columns_long = (
             "UUID",
             "Name",
-            "Flavor",
             "Status",
             "Power State",
+            "Networks",
             "Image",
-            "Description",
+            "Flavor",
             "Availability Zone",
-            "Networks"
+            "Properties"
         )
 
         self.list_data = tuple((
             self.fake_servers[i].uuid,
             self.fake_servers[i].name,
             self.fake_servers[i].status,
+            '172.24.4.4, 2001:db8::a',
+            self.fake_servers[i].image_uuid,
             ) for i in range(3))
 
         self.list_data_long = tuple((
             self.fake_servers[i].uuid,
             self.fake_servers[i].name,
-            self.fake_servers[i].instance_type_uuid,
             self.fake_servers[i].status,
             self.fake_servers[i].power_state,
+            '172.24.4.4, 2001:db8::a',
             self.fake_servers[i].image_uuid,
-            self.fake_servers[i].description,
+            self.fake_servers[i].instance_type_uuid,
             self.fake_servers[i].availability_zone,
-            '172.24.4.4, 2001:db8::a'
+            '',
             ) for i in range(3))
 
     def test_server_list(self, mock_list):
@@ -347,7 +351,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         mock_list.return_value = self.fake_servers
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_list.assert_called_once_with('/instances',
+        mock_list.assert_called_once_with('/instances/detail',
                                           response_key='instances')
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
@@ -377,7 +381,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         mock_list.return_value = self.fake_servers
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_list.assert_called_once_with('/instances?all_tenants=True',
+        mock_list.assert_called_once_with('/instances/detail?all_tenants=True',
                                           response_key='instances')
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))

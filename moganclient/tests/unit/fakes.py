@@ -260,7 +260,7 @@ class FakeServer(object):
                 dashed=False),
             "availability_zone": "zone-name-" + uuidutils.generate_uuid(
                 dashed=False),
-            'extra': "fake_extra"
+            'extra': {}
         }
 
         # Overwrite default attributes.
