@@ -18,6 +18,7 @@
 
 import json
 import logging
+import os
 
 from osc_lib.cli import parseractions
 from osc_lib.command import command
@@ -207,9 +208,8 @@ class ListServer(command.Lister):
         parser.add_argument(
             '--all-projects',
             action='store_true',
-            default=False,
-            help=_("List the baremetal servers of all projects, "
-                   "only available for admin users.")
+            default=bool(int(os.environ.get("ALL_PROJECTS", 0))),
+            help=_('Include all projects (admin only)'),
         )
         return parser
 
@@ -227,46 +227,49 @@ class ListServer(command.Lister):
         bc_client = self.app.client_manager.baremetal_compute
 
         if parsed_args.long:
-            data = bc_client.server.list(detailed=True,
-                                         all_projects=parsed_args.all_projects)
-            formatters = {'network_info': self._networks_formatter}
             # This is the easiest way to change column headers
             column_headers = (
                 "UUID",
                 "Name",
-                "Flavor",
                 "Status",
                 "Power State",
+                "Networks",
                 "Image",
-                "Description",
+                "Flavor",
                 "Availability Zone",
-                "Networks"
+                'Properties',
             )
             columns = (
                 "uuid",
                 "name",
-                "instance_type_uuid",
                 "status",
                 "power_state",
+                "network_info",
                 "image_uuid",
-                "description",
+                "instance_type_uuid",
                 "availability_zone",
-                "network_info"
+                'extra',
             )
         else:
-            data = bc_client.server.list(all_projects=parsed_args.all_projects)
-            formatters = None
             column_headers = (
                 "UUID",
                 "Name",
                 "Status",
+                "Networks",
+                "Image",
             )
             columns = (
                 "uuid",
                 "name",
                 "status",
+                "network_info",
+                "image_uuid",
             )
 
+        data = bc_client.server.list(detailed=True,
+                                     all_projects=parsed_args.all_projects)
+        formatters = {'network_info': self._networks_formatter,
+                      'extra': utils.format_dict}
         return (column_headers,
                 (utils.get_item_properties(
                     s, columns, formatters=formatters
