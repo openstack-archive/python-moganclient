@@ -16,6 +16,7 @@
 
 """Mogan v1 Baremetal server action implementations"""
 
+import io
 import json
 import logging
 import os
@@ -108,6 +109,11 @@ class CreateServer(command.ShowOne):
             help=_("The availability zone for the baremetal server placement"),
         )
         parser.add_argument(
+            '--user-data',
+            metavar='<user-data>',
+            help=_('User data file to inject into the instance'),
+        )
+        parser.add_argument(
             "--extra",
             metavar="<extra>",
             help=_("The extra information for baremetal server"),
@@ -144,17 +150,36 @@ class CreateServer(command.ShowOne):
                 nic['net_id'] = nic['net-id']
                 del nic['net-id']
 
-        data = bc_client.server.create(
+        userdata = None
+        if parsed_args.user_data:
+            try:
+                userdata = io.open(parsed_args.user_data)
+            except IOError as e:
+                msg = _("Can't open '%(data)s': %(exception)s")
+                raise exceptions.CommandError(
+                    msg % {"data": parsed_args.user_data,
+                           "exception": e}
+                )
+
+        boot_kwargs = dict(
             name=parsed_args.name,
             image_uuid=image_data.id,
             flavor_uuid=flavor_data.uuid,
             description=parsed_args.description,
             networks=parsed_args.nic,
             availability_zone=parsed_args.availability_zone,
+            userdata=userdata,
             extra=parsed_args.extra,
             min_count=parsed_args.min_count,
             max_count=parsed_args.max_count
         )
+
+        try:
+            data = bc_client.server.create(**boot_kwargs)
+        finally:
+            if hasattr(userdata, 'close'):
+                userdata.close()
+
         info = {}
         info.update(data._info)
         return zip(*sorted(info.items()))

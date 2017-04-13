@@ -13,6 +13,11 @@
 #   under the License.
 #
 
+import base64
+
+from oslo_utils import encodeutils
+import six
+
 from moganclient.common import base
 
 
@@ -25,7 +30,7 @@ class ServerManager(base.ManagerWithFind):
 
     def create(self, name, image_uuid, flavor_uuid, networks,
                description=None, availability_zone=None, extra=None,
-               min_count=None, max_count=None):
+               userdata=None, min_count=None, max_count=None):
         url = '/instances'
         data = {
             'name': name,
@@ -33,6 +38,28 @@ class ServerManager(base.ManagerWithFind):
             'instance_type_uuid': flavor_uuid,
             'networks': networks
         }
+
+        if userdata is not None:
+            if hasattr(userdata, 'read'):
+                userdata = userdata.read()
+
+            # NOTE(melwitt): Text file data is converted to bytes prior to
+            # base64 encoding. The utf-8 encoding will fail for binary files.
+            if six.PY3:
+                try:
+                    userdata = userdata.encode("utf-8")
+                except AttributeError:
+                    # In python 3, 'bytes' object has no attribute 'encode'
+                    pass
+            else:
+                try:
+                    userdata = encodeutils.safe_encode(userdata)
+                except UnicodeDecodeError:
+                    pass
+
+            userdata_b64 = base64.b64encode(userdata).decode('utf-8')
+            data["user_data"] = userdata_b64
+
         if availability_zone is not None:
             data['availability_zone'] = availability_zone
         if description is not None:
