@@ -37,6 +37,8 @@ class TestServer(test_base.TestBaremetalComputeV1):
         'image_uuid',
         'instance_type_uuid',
         'links',
+        'max_count',
+        'min_count',
         'name',
         'network_info',
         'updated_at',
@@ -49,6 +51,8 @@ class TestServer(test_base.TestBaremetalComputeV1):
         fake_server.image_uuid,
         fake_server.instance_type_uuid,
         fake_server.links,
+        1,
+        1,
         fake_server.name,
         fake_server.network_info,
         fake_server.updated_at,
@@ -86,7 +90,9 @@ class TestServerCreate(TestServer):
         called_data = {'name': name,
                        'image_uuid': image_id,
                        'instance_type_uuid': flavor_id,
-                       'networks': called_networks}
+                       'networks': called_networks,
+                       'min_count': 1,
+                       'max_count': 1}
         for network in networks:
             network_id = network.get('net-id')
             port_type = network.get('port-type')
@@ -108,9 +114,9 @@ class TestServerCreate(TestServer):
             verifylist.append(('availability_zone', availability_zone))
             called_data['availability_zone'] = availability_zone
         if extra:
-            arglist.extend(['--extra', extra])
-            verifylist.append(('extra', extra))
-            called_data['extra'] = extra
+            arglist.extend(['--property', extra])
+            verifylist.append(('property', {'key1': 'test'}))
+            called_data['extra'] = {'key1': 'test'}
 
         flavor_obj = mock.Mock()
         flavor_obj.uuid = flavor_id
@@ -134,6 +140,8 @@ class TestServerCreate(TestServer):
             fk_server.image_uuid,
             fk_server.instance_type_uuid,
             fk_server.links,
+            1,
+            1,
             fk_server.name,
             fk_server.network_info,
             fk_server.updated_at,

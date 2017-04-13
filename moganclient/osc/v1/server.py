@@ -80,13 +80,13 @@ class CreateServer(command.ShowOne):
             "--flavor",
             metavar="<flavor>",
             required=True,
-            help=_("ID or Name of baremetal server flavor"),
+            help=_('Create server with this flavor (name or ID)'),
         )
         parser.add_argument(
             "--image",
             metavar="<image>",
             required=True,
-            help=_("ID or Name of image"),
+            help=_('Create server boot disk from this image (name or ID)'),
         )
         parser.add_argument(
             "--nic",
@@ -96,7 +96,7 @@ class CreateServer(command.ShowOne):
             optional_keys=['port-type'],
             action=parseractions.MultiKeyValueAction,
             help=_("Create a NIC on the server. "
-                   "(repeat option to create multiple NICs)"),
+                   "Specify option multiple times to create multiple NICs."),
         )
         parser.add_argument(
             "--description",
@@ -106,7 +106,7 @@ class CreateServer(command.ShowOne):
         parser.add_argument(
             "--availability-zone",
             metavar="<zone-name>",
-            help=_("The availability zone for the baremetal server placement"),
+            help=_('Select an availability zone for the server'),
         )
         parser.add_argument(
             '--user-data',
@@ -114,21 +114,25 @@ class CreateServer(command.ShowOne):
             help=_('User data file to inject into the instance'),
         )
         parser.add_argument(
-            "--extra",
-            metavar="<extra>",
-            help=_("The extra information for baremetal server"),
+            '--property',
+            metavar='<key=value>',
+            action=parseractions.KeyValueAction,
+            help=_('Set a property on this server '
+                   '(repeat option to set multiple values)'),
         )
         parser.add_argument(
-            "--min-count",
+            "--min",
+            metavar='<count>',
             type=int,
-            metavar="<number>",
-            help=_("Create at least <number> servers (limited by quota)"),
+            default=1,
+            help=_('Minimum number of servers to launch (default=1)'),
         )
         parser.add_argument(
-            "--max-count",
+            '--max',
+            metavar='<count>',
             type=int,
-            metavar="<number>",
-            help=_("Create up to <number> servers (limited by quota)"),
+            default=1,
+            help=_('Maximum number of servers to launch (default=1)'),
         )
 
         return parser
@@ -150,6 +154,16 @@ class CreateServer(command.ShowOne):
                 nic['net_id'] = nic['net-id']
                 del nic['net-id']
 
+        if parsed_args.min > parsed_args.max:
+            msg = _("min instances should be <= max instances")
+            raise exceptions.CommandError(msg)
+        if parsed_args.min < 1:
+            msg = _("min instances should be > 0")
+            raise exceptions.CommandError(msg)
+        if parsed_args.max < 1:
+            msg = _("max instances should be > 0")
+            raise exceptions.CommandError(msg)
+
         userdata = None
         if parsed_args.user_data:
             try:
@@ -169,9 +183,9 @@ class CreateServer(command.ShowOne):
             networks=parsed_args.nic,
             availability_zone=parsed_args.availability_zone,
             userdata=userdata,
-            extra=parsed_args.extra,
-            min_count=parsed_args.min_count,
-            max_count=parsed_args.max_count
+            extra=parsed_args.property,
+            min_count=parsed_args.min,
+            max_count=parsed_args.max
         )
 
         try:
