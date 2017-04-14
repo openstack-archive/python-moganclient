@@ -109,6 +109,14 @@ class CreateServer(command.ShowOne):
             help=_('Select an availability zone for the server'),
         )
         parser.add_argument(
+            '--file',
+            metavar='<dest-filename=source-filename>',
+            action='append',
+            default=[],
+            help=_('File to inject into image before boot '
+                   '(repeat option to set multiple files)'),
+        )
+        parser.add_argument(
             '--user-data',
             metavar='<user-data>',
             help=_('User data file to inject into the instance'),
@@ -154,6 +162,18 @@ class CreateServer(command.ShowOne):
                 nic['net_id'] = nic['net-id']
                 del nic['net-id']
 
+        files = {}
+        for f in parsed_args.file:
+            dst, src = f.split('=', 1)
+            try:
+                files[dst] = io.open(src, 'rb')
+            except IOError as e:
+                msg = _("Can't open '%(source)s': %(exception)s")
+                raise exceptions.CommandError(
+                    msg % {"source": src,
+                           "exception": e}
+                )
+
         if parsed_args.min > parsed_args.max:
             msg = _("min instances should be <= max instances")
             raise exceptions.CommandError(msg)
@@ -183,6 +203,7 @@ class CreateServer(command.ShowOne):
             networks=parsed_args.nic,
             availability_zone=parsed_args.availability_zone,
             userdata=userdata,
+            files=files,
             extra=parsed_args.property,
             min_count=parsed_args.min,
             max_count=parsed_args.max
@@ -191,6 +212,10 @@ class CreateServer(command.ShowOne):
         try:
             data = bc_client.server.create(**boot_kwargs)
         finally:
+            # Clean up open files - make sure they are not strings
+            for f in files:
+                if hasattr(f, 'close'):
+                    f.close()
             if hasattr(userdata, 'close'):
                 userdata.close()
 
