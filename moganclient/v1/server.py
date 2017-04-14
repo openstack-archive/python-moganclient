@@ -30,7 +30,7 @@ class ServerManager(base.ManagerWithFind):
 
     def create(self, name, image_uuid, flavor_uuid, networks,
                description=None, availability_zone=None, extra=None,
-               userdata=None, min_count=None, max_count=None):
+               userdata=None, files=None, min_count=None, max_count=None):
         url = '/instances'
         data = {
             'name': name,
@@ -59,6 +59,27 @@ class ServerManager(base.ManagerWithFind):
 
             userdata_b64 = base64.b64encode(userdata).decode('utf-8')
             data["user_data"] = userdata_b64
+
+        # Files are a slight bit tricky. They're passed in a "personality"
+        # list to the POST. Each item is a dict giving a file name and the
+        # base64-encoded contents of the file. We want to allow passing
+        # either an open file *or* some contents as files here.
+        if files:
+            personality = data['personality'] = []
+            for filepath, file_or_string in sorted(files.items(),
+                                                   key=lambda x: x[0]):
+                if hasattr(file_or_string, 'read'):
+                    file_data = file_or_string.read()
+                else:
+                    file_data = file_or_string
+
+                if six.PY3 and isinstance(file_data, str):
+                    file_data = file_data.encode('utf-8')
+                cont = base64.b64encode(file_data).decode('utf-8')
+                personality.append({
+                    'path': filepath,
+                    'contents': cont,
+                })
 
         if availability_zone is not None:
             data['availability_zone'] = availability_zone
