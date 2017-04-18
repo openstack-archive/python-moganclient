@@ -41,7 +41,7 @@ def getid(obj):
 class Manager(object):
     """Interacts with type of API
 
-    Managers interact with a particular type of API (instances, types, etc.)
+    Managers interact with a particular type of API (instances, flavors, etc.)
     and provide CRUD operations for them.
     """
     resource_class = None

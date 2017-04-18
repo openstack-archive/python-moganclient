@@ -65,7 +65,7 @@ class TestFlavorCreate(TestFlavor):
         mock_create.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_create.assert_called_once_with('/types',
+        mock_create.assert_called_once_with('/flavors',
                                             data={
                                                 'name': 'flavor1',
                                                 'is_public': True,
@@ -86,7 +86,7 @@ class TestFlavorCreate(TestFlavor):
         mock_create.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_create.assert_called_once_with('/types',
+        mock_create.assert_called_once_with('/flavors',
                                             data={
                                                 'name': 'flavor1',
                                                 'is_public': True,
@@ -107,7 +107,7 @@ class TestFlavorCreate(TestFlavor):
         mock_create.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_create.assert_called_once_with('/types',
+        mock_create.assert_called_once_with('/flavors',
                                             data={
                                                 'name': 'flavor1',
                                                 'is_public': False,
@@ -129,7 +129,7 @@ class TestFlavorCreate(TestFlavor):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with(
-            '/types',
+            '/flavors',
             data={
                 'name': 'flavor1',
                 'is_public': True,
@@ -154,13 +154,13 @@ class TestFlavorCreate(TestFlavor):
         mock_get.return_value = {'extra_specs': {'key1': 'value1'}}
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_create.assert_called_once_with('/types',
+        mock_create.assert_called_once_with('/flavors',
                                             data={
                                                 'name': 'flavor1',
                                                 'is_public': True,
                                                 'description': None,
                                             })
-        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_flavor)
+        expected_url = '/flavors/%s/extraspecs' % base.getid(self.fake_flavor)
         mock_update.assert_called_once_with(expected_url,
                                             data=parsed_args.property,
                                             return_raw=True)
@@ -190,7 +190,7 @@ class TestFlavorDelete(TestFlavor):
         mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s' % base.getid(self.fake_flavor)
+        expected_url = '/flavors/%s' % base.getid(self.fake_flavor)
         mock_delete.assert_called_once_with(expected_url)
         self.assertIsNone(result)
 
@@ -206,7 +206,7 @@ class TestFlavorDelete(TestFlavor):
         mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s' % base.getid(self.fake_flavor)
+        expected_url = '/flavors/%s' % base.getid(self.fake_flavor)
         expected_call = [mock.call(expected_url), mock.call(expected_url),
                          mock.call(expected_url)]
         mock_delete.assert_has_calls(expected_call)
@@ -241,7 +241,7 @@ class TestFlavorList(TestFlavor):
         mock_list.return_value = [self.fake_flavor]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_list.assert_called_once_with('/types', response_key='types')
+        mock_list.assert_called_once_with('/flavors', response_key='flavors')
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
 
@@ -267,7 +267,7 @@ class TestFlavorSet(TestFlavor):
         mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_flavor)
+        expected_url = '/flavors/%s/extraspecs' % base.getid(self.fake_flavor)
         expected_data = {'key1': 'value1', 'key2': 'value2'}
         mock_update.assert_called_once_with(expected_url,
                                             data=expected_data,
@@ -288,7 +288,7 @@ class TestFlavorSet(TestFlavor):
         mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s/extraspecs/key0' % base.getid(
+        expected_url = '/flavors/%s/extraspecs/key0' % base.getid(
             self.fake_flavor)
         self.assertNotCalled(mock_update)
         mock_delete.assert_called_once_with(expected_url)
@@ -309,12 +309,12 @@ class TestFlavorSet(TestFlavor):
         mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s/extraspecs' % base.getid(self.fake_flavor)
+        expected_url = '/flavors/%s/extraspecs' % base.getid(self.fake_flavor)
         expected_data = {'key1': 'value1'}
         mock_update.assert_called_once_with(expected_url,
                                             data=expected_data,
                                             return_raw=True)
-        expected_url = '/types/%s/extraspecs/key0' % base.getid(
+        expected_url = '/flavors/%s/extraspecs/key0' % base.getid(
             self.fake_flavor)
         mock_delete.assert_called_once_with(expected_url)
         self.assertIsNone(result)
@@ -336,7 +336,7 @@ class TestFlavorShow(TestFlavor):
         mock_get.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s' % parsed_args.flavor
+        expected_url = '/flavors/%s' % parsed_args.flavor
         mock_get.assert_called_once_with(expected_url)
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
@@ -362,7 +362,7 @@ class TestFlavorUnset(TestFlavor):
         mock_find.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         result = self.cmd.take_action(parsed_args)
-        expected_url = '/types/%s/extraspecs/key0' % base.getid(
+        expected_url = '/flavors/%s/extraspecs/key0' % base.getid(
             self.fake_flavor)
         mock_delete.assert_called_once_with(expected_url)
         self.assertIsNone(result)
