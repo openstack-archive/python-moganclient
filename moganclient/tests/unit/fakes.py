@@ -238,10 +238,11 @@ class FakeServer(object):
         attrs = attrs or {}
         attrs_data = copy.deepcopy(attrs)
         networks = attrs_data.pop('networks', [])
-        network_info = {}
+        nics = []
         for network in networks:
-            network_info[network.get('uuid')] = {}
-        attrs_data["network_info"] = network_info
+            nics.append({'netowrk_id': network.get('uuid'),
+                         'port_id': uuidutils.generate_uuid()})
+        attrs_data["nics"] = nics
 
         # Set default attribute
         server_info = {
@@ -253,8 +254,20 @@ class FakeServer(object):
             "links": [],
             "name": "server-name-" + uuidutils.generate_uuid(
                 dashed=False),
-            "network_info": {"net-id-" + uuidutils.generate_uuid(
-                dashed=False): {}},
+            "nics": [{
+                "network_id": uuidutils.generate_uuid(),
+                "port_id": uuidutils.generate_uuid(),
+                "floating_ip": '',
+                "port_type": '',
+                "mac_address": "52:54:00:cc:ed:87",
+                "fixed_ips": [{
+                    "subnet_id": uuidutils.generate_uuid(),
+                    "ip_address": "11.0.0.6"
+                }, {
+                    "subnet_id": uuidutils.generate_uuid(),
+                    "ip_address": "fdaa:67c7:e09e:0:5054:ff:fecc:ed87"
+                }]
+            }],
             "updated_at": None,
             "uuid": "server-id-" + uuidutils.generate_uuid(
                 dashed=False),

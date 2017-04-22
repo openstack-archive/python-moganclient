@@ -40,7 +40,7 @@ class TestServer(test_base.TestBaremetalComputeV1):
         'max_count',
         'min_count',
         'name',
-        'network_info',
+        'nics',
         'updated_at',
         'uuid')
 
@@ -54,7 +54,7 @@ class TestServer(test_base.TestBaremetalComputeV1):
         1,
         1,
         fake_server.name,
-        fake_server.network_info,
+        fake_server.nics,
         fake_server.updated_at,
         fake_server.uuid)
 
@@ -143,7 +143,7 @@ class TestServerCreate(TestServer):
             1,
             1,
             fk_server.name,
-            fk_server.network_info,
+            fk_server.nics,
             fk_server.updated_at,
             fk_server.uuid)
         self.assertEqual(expected_data, data)
@@ -293,26 +293,24 @@ class TestServerList(test_base.TestBaremetalComputeV1):
     def setUp(self):
         super(TestServerList, self).setUp()
         self.cmd = server.ListServer(self.app, None)
-        fake_return_net = {
-            "12cffc4a-b845-409e-b589-7c84be4b10d9": {
-                "fixed_ips": [
-                    {
-                        "ip_address": "172.24.4.4",
-                        "subnet_id": "a9d47430-f90b-4513-af5f-6315af54de7d"
-                    },
-                    {
-                        "ip_address": "2001:db8::a",
-                        "subnet_id": "5e7b3e2d-f36f-4e30-874c-16c2d126fe53"
-                    }
-                ],
-                "mac_address": "52:54:00:6c:c4:17",
-                "network": "ade2b658-929b-439f-9528-c47057960942"
-            }
-        }
+        fake_return_net = [{
+            "network_id": "f31af5a2-f14d-4007-b2e5-abeb82429b87",
+            "port_id": "99845c22-6268-46c1-b068-1dbcb8adaf68",
+            "floating_ip": '',
+            "port_type": '',
+            "mac_address": "52:54:00:cc:ed:87",
+            "fixed_ips": [{
+                "subnet_id": "5a324b29-9aca-43d8-a6c3-31986dda95b5",
+                "ip_address": "172.24.4.4"
+            }, {
+                "subnet_id": "9baceab1-40ec-4c53-ad83-530a625bddb1",
+                "ip_address": "2001:db8::a"
+            }]
+        }]
         self.fake_servers = fakes.FakeServer.create_servers(
             attrs={'status': 'active', 'power_state': 'power on'}, count=3)
         for s in self.fake_servers:
-            setattr(s, 'network_info', fake_return_net)
+            setattr(s, 'nics', fake_return_net)
         self.list_columns = (
             "UUID",
             "Name",
@@ -661,7 +659,7 @@ class TestServerUnLock(TestServerLockActionBase):
             mock_update_all, mock_find)
 
 
-@mock.patch.object(server_mgr.ServerManager, 'get_network_info')
+@mock.patch.object(server_mgr.ServerManager, 'get_server_nics')
 @mock.patch.object(server_mgr.ServerManager, 'get')
 class TestServerShowNetInfo(TestServer):
     def setUp(self):

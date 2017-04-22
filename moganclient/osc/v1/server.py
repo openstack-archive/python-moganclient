@@ -278,11 +278,11 @@ class ListServer(command.Lister):
         return parser
 
     @staticmethod
-    def _networks_formatter(network_info):
+    def _nics_formatter(nics):
         return_info = []
-        for port_uuid in network_info:
+        for nics in nics:
             port_ips = []
-            for fixed_ip in network_info[port_uuid]['fixed_ips']:
+            for fixed_ip in nics['fixed_ips']:
                 port_ips.append(fixed_ip['ip_address'])
             return_info.append(', '.join(port_ips))
         return '; '.join(return_info)
@@ -308,7 +308,7 @@ class ListServer(command.Lister):
                 "name",
                 "status",
                 "power_state",
-                "network_info",
+                "nics",
                 "image_uuid",
                 "instance_type_uuid",
                 "availability_zone",
@@ -326,13 +326,13 @@ class ListServer(command.Lister):
                 "uuid",
                 "name",
                 "status",
-                "network_info",
+                "nics",
                 "image_uuid",
             )
 
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
-        formatters = {'network_info': self._networks_formatter,
+        formatters = {'nics': self._nics_formatter,
                       'extra': utils.format_dict}
         return (column_headers,
                 (utils.get_item_properties(
@@ -524,16 +524,10 @@ class ShowServerNetworkInfo(command.Lister):
             bc_client.server,
             parsed_args.server,
         )
-        data = bc_client.server.get_network_info(server.uuid)
-        info = data._info
-        nics = []
-        for port_id in list(info):
-            nic = {'port_id': port_id}
-            nic.update(info[port_id])
-            nics.append(nic)
-        columns = ('network', 'port_id', 'mac_address', 'fixed_ips',
+        data = bc_client.server.get_server_nics(server.uuid)
+        columns = ('network_id', 'port_id', 'mac_address', 'fixed_ips',
                    'floatingip', 'port_type')
         formatters = {'fixed_ips': lambda s: json.dumps(s, indent=4)}
         return (columns,
-                (utils.get_dict_properties(
-                    s, columns, formatters=formatters) for s in nics))
+                (utils.get_item_properties(
+                    nic, columns, formatters=formatters) for nic in data))
