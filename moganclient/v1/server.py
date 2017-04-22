@@ -123,6 +123,6 @@ class ServerManager(base.ManagerWithFind):
         url = '/servers/%s/states/lock' % base.getid(server_id)
         return self._update_all(url, data={'target': lock_state})
 
-    def get_network_info(self, server_id):
+    def get_server_nics(self, server_id):
         url = '/servers/%s/networks' % base.getid(server_id)
-        return self._get(url, response_key='ports')
+        return self._list(url, response_key='nics')
