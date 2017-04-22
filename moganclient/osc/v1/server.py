@@ -122,6 +122,11 @@ class CreateServer(command.ShowOne):
             help=_('User data file to inject into the instance'),
         )
         parser.add_argument(
+            '--key-name',
+            metavar='<key-name>',
+            help=_('Keypair to inject into this server (optional extension)'),
+        )
+        parser.add_argument(
             '--property',
             metavar='<key=value>',
             action=parseractions.KeyValueAction,
@@ -204,6 +209,7 @@ class CreateServer(command.ShowOne):
             availability_zone=parsed_args.availability_zone,
             userdata=userdata,
             files=files,
+            key_name=parsed_args.key_name,
             extra=parsed_args.property,
             min_count=parsed_args.min,
             max_count=parsed_args.max

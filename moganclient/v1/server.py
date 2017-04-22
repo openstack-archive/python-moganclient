@@ -30,7 +30,8 @@ class ServerManager(base.ManagerWithFind):
 
     def create(self, name, image_uuid, flavor_uuid, networks,
                description=None, availability_zone=None, extra=None,
-               userdata=None, files=None, min_count=None, max_count=None):
+               userdata=None, files=None, key_name=None, min_count=None,
+               max_count=None):
         url = '/instances'
         data = {
             'name': name,
@@ -85,6 +86,8 @@ class ServerManager(base.ManagerWithFind):
             data['availability_zone'] = availability_zone
         if description is not None:
             data['description'] = description
+        if key_name is not None:
+            data['key_name'] = key_name
         if extra is not None:
             data['extra'] = extra
         if min_count is not None:
