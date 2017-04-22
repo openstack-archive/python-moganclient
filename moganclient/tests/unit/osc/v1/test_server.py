@@ -40,7 +40,7 @@ class TestServer(test_base.TestBaremetalComputeV1):
         'max_count',
         'min_count',
         'name',
-        'network_info',
+        'nics',
         'updated_at',
         'uuid')
 
