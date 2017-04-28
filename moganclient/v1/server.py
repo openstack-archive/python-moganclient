@@ -32,11 +32,11 @@ class ServerManager(base.ManagerWithFind):
                description=None, availability_zone=None, extra=None,
                userdata=None, files=None, key_name=None, min_count=None,
                max_count=None):
-        url = '/instances'
+        url = '/servers'
         data = {
             'name': name,
             'image_uuid': image_uuid,
-            'instance_type_uuid': flavor_uuid,
+            'flavor_uuid': flavor_uuid,
             'networks': networks
         }
 
@@ -98,31 +98,31 @@ class ServerManager(base.ManagerWithFind):
         return self._create(url, data=data)
 
     def delete(self, server_id):
-        url = '/instances/%s' % base.getid(server_id)
+        url = '/servers/%s' % base.getid(server_id)
         return self._delete(url)
 
     def get(self, server_id):
-        url = '/instances/%s' % base.getid(server_id)
+        url = '/servers/%s' % base.getid(server_id)
         return self._get(url)
 
     def list(self, detailed=False, all_projects=False):
-        url = '/instances/detail' if detailed else '/instances'
+        url = '/servers/detail' if detailed else '/servers'
         if all_projects:
             url = '%s?%s' % (url, 'all_tenants=True')
-        return self._list(url, response_key='instances')
+        return self._list(url, response_key='servers')
 
     def update(self, server_id, updates):
-        url = '/instances/%s' % base.getid(server_id)
+        url = '/servers/%s' % base.getid(server_id)
         return self._update(url, data=updates)
 
     def set_power_state(self, server_id, power_state):
-        url = '/instances/%s/states/power' % base.getid(server_id)
+        url = '/servers/%s/states/power' % base.getid(server_id)
         return self._update_all(url, data={'target': power_state})
 
     def set_lock_state(self, server_id, lock_state):
-        url = '/instances/%s/states/lock' % base.getid(server_id)
+        url = '/servers/%s/states/lock' % base.getid(server_id)
         return self._update_all(url, data={'target': lock_state})
 
     def get_network_info(self, server_id):
-        url = '/instances/%s/networks' % base.getid(server_id)
+        url = '/servers/%s/networks' % base.getid(server_id)
         return self._get(url, response_key='ports')

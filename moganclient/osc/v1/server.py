@@ -119,7 +119,7 @@ class CreateServer(command.ShowOne):
         parser.add_argument(
             '--user-data',
             metavar='<user-data>',
-            help=_('User data file to inject into the instance'),
+            help=_('User data file to inject into the server'),
         )
         parser.add_argument(
             '--key-name',
@@ -180,13 +180,13 @@ class CreateServer(command.ShowOne):
                 )
 
         if parsed_args.min > parsed_args.max:
-            msg = _("min instances should be <= max instances")
+            msg = _("min servers should be <= max servers")
             raise exceptions.CommandError(msg)
         if parsed_args.min < 1:
-            msg = _("min instances should be > 0")
+            msg = _("min servers should be > 0")
             raise exceptions.CommandError(msg)
         if parsed_args.max < 1:
-            msg = _("max instances should be > 0")
+            msg = _("max servers should be > 0")
             raise exceptions.CommandError(msg)
 
         userdata = None
@@ -316,7 +316,7 @@ class ListServer(command.Lister):
                 "power_state",
                 "network_info",
                 "image_uuid",
-                "instance_type_uuid",
+                "flavor_uuid",
                 "availability_zone",
                 'extra',
             )

@@ -41,7 +41,7 @@ def getid(obj):
 class Manager(object):
     """Interacts with type of API
 
-    Managers interact with a particular type of API (instances, flavors, etc.)
+    Managers interact with a particular type of API (servers, flavors, etc.)
     and provide CRUD operations for them.
     """
     resource_class = None
@@ -244,9 +244,9 @@ class RequestIdMixin(object):
 
 
 class Resource(RequestIdMixin):
-    """Represents an instance of an object
+    """Represents an server of an object
 
-    A resource represents a particular instance of an object (instance, type,
+    A resource represents a particular instance of an object (server, type,
     etc). This is pretty much just a bag for attributes.
 
     :param manager: BaseManager object

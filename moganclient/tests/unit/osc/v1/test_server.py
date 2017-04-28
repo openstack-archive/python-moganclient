@@ -35,7 +35,7 @@ class TestServer(test_base.TestBaremetalComputeV1):
         'description',
         'extra',
         'image_uuid',
-        'instance_type_uuid',
+        'flavor_uuid',
         'links',
         'max_count',
         'min_count',
@@ -49,7 +49,7 @@ class TestServer(test_base.TestBaremetalComputeV1):
         fake_server.created_at,
         fake_server.description,
         fake_server.image_uuid,
-        fake_server.instance_type_uuid,
+        fake_server.flavor_uuid,
         fake_server.links,
         1,
         1,
@@ -89,7 +89,7 @@ class TestServerCreate(TestServer):
                 del nic['net-id']
         called_data = {'name': name,
                        'image_uuid': image_id,
-                       'instance_type_uuid': flavor_id,
+                       'flavor_uuid': flavor_id,
                        'networks': called_networks,
                        'min_count': 1,
                        'max_count': 1}
@@ -129,7 +129,7 @@ class TestServerCreate(TestServer):
         columns, data = self.cmd.take_action(parsed_args)
 
         mock_create.assert_called_once_with(
-            '/instances',
+            '/servers',
             data=called_data)
         self.assertEqual(self.columns, columns)
         expected_data = (
@@ -138,7 +138,7 @@ class TestServerCreate(TestServer):
             fk_server.description,
             fk_server.extra,
             fk_server.image_uuid,
-            fk_server.instance_type_uuid,
+            fk_server.flavor_uuid,
             fk_server.links,
             1,
             1,
@@ -227,7 +227,7 @@ class TestServerUpdate(test_base.TestBaremetalComputeV1):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
         mock_update.assert_called_with(
-            '/instances/%s' % self.fake_server.uuid,
+            '/servers/%s' % self.fake_server.uuid,
             data=[{'path': '/description',
                    'value': 'test_description',
                    'op': 'replace'}])
@@ -243,7 +243,7 @@ class TestServerUpdate(test_base.TestBaremetalComputeV1):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
         mock_update.assert_called_with(
-            '/instances/%s' % self.fake_server.uuid,
+            '/servers/%s' % self.fake_server.uuid,
             data=[{'path': '/extra/extra_key',
                    'value': 'extra_value',
                    'op': 'add'}])
@@ -269,7 +269,7 @@ class TestServerUpdate(test_base.TestBaremetalComputeV1):
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
         mock_update.assert_called_with(
-            '/instances/%s' % self.fake_server.uuid,
+            '/servers/%s' % self.fake_server.uuid,
             data=[{'path': '/extra/add_key1',
                    'value': 'add_value1',
                    'op': 'add'},
@@ -348,7 +348,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             self.fake_servers[i].power_state,
             '172.24.4.4, 2001:db8::a',
             self.fake_servers[i].image_uuid,
-            self.fake_servers[i].instance_type_uuid,
+            self.fake_servers[i].flavor_uuid,
             self.fake_servers[i].availability_zone,
             '',
             ) for i in range(3))
@@ -359,8 +359,8 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         mock_list.return_value = self.fake_servers
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_list.assert_called_once_with('/instances/detail',
-                                          response_key='instances')
+        mock_list.assert_called_once_with('/servers/detail',
+                                          response_key='servers')
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
 
@@ -374,8 +374,8 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         mock_list.return_value = self.fake_servers
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_list.assert_called_once_with('/instances/detail',
-                                          response_key='instances')
+        mock_list.assert_called_once_with('/servers/detail',
+                                          response_key='servers')
         self.assertEqual(self.list_columns_long, columns)
         self.assertEqual(self.list_data_long, tuple(data))
 
@@ -389,8 +389,8 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         mock_list.return_value = self.fake_servers
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_list.assert_called_once_with('/instances/detail?all_tenants=True',
-                                          response_key='instances')
+        mock_list.assert_called_once_with('/servers/detail?all_tenants=True',
+                                          response_key='servers')
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
 
@@ -409,7 +409,7 @@ class TestServerDelete(test_base.TestBaremetalComputeV1):
         verify_args = [('server', ['server1'])]
         parsed_args = self.check_parser(self.cmd, args, verify_args)
         self.cmd.take_action(parsed_args)
-        mock_delete.assert_called_with('/instances/%s' % fake_server.uuid)
+        mock_delete.assert_called_with('/servers/%s' % fake_server.uuid)
 
     def test_server_delete_more_than_one(self, mock_delete, mock_find):
         fake_servers = fakes.FakeServer.create_servers(count=3)
@@ -418,7 +418,7 @@ class TestServerDelete(test_base.TestBaremetalComputeV1):
         verify_args = [('server', [s.name for s in fake_servers])]
         parsed_args = self.check_parser(self.cmd, args, verify_args)
         self.cmd.take_action(parsed_args)
-        expected = [mock.call('/instances/%s' % s.uuid) for s in fake_servers]
+        expected = [mock.call('/servers/%s' % s.uuid) for s in fake_servers]
         self.assertEqual(expected, mock_delete.call_args_list)
 
     def test_server_delete_more_than_one_partly_failed(
@@ -448,7 +448,7 @@ class TestServerShow(test_base.TestBaremetalComputeV1):
         parsed_args = self.check_parser(self.cmd, args, verify_args)
         self.cmd.take_action(parsed_args)
         mock_get.assert_called_once_with(
-            '/instances/%s' % self.fake_server.uuid)
+            '/servers/%s' % self.fake_server.uuid)
 
     @mock.patch.object(server_mgr.ServerManager, 'list')
     def test_server_show_with_name_specified(self, mock_list, mock_get):
@@ -460,9 +460,9 @@ class TestServerShow(test_base.TestBaremetalComputeV1):
                                 self.fake_server]
         mock_list.return_value = [self.fake_server]
         self.cmd.take_action(parsed_args)
-        expected = [mock.call('/instances/%s' % self.fake_server.name),
-                    mock.call('/instances/%s' % self.fake_server.name),
-                    mock.call('/instances/%s' % self.fake_server.uuid)]
+        expected = [mock.call('/servers/%s' % self.fake_server.name),
+                    mock.call('/servers/%s' % self.fake_server.name),
+                    mock.call('/servers/%s' % self.fake_server.uuid)]
         self.assertEqual(expected, mock_get.call_args_list)
 
 
@@ -480,7 +480,7 @@ class TestServerPowerActionBase(test_base.TestBaremetalComputeV1):
         parsed_args = self.check_parser(self.cmd, args, verify_args)
         self.cmd.take_action(parsed_args)
         mock_update_all.assert_called_with(
-            '/instances/%s/states/power' % fake_server.uuid,
+            '/servers/%s/states/power' % fake_server.uuid,
             data={'target': self.action})
 
     def _test_server_power_action_multiple(self, mock_update_all,
@@ -492,7 +492,7 @@ class TestServerPowerActionBase(test_base.TestBaremetalComputeV1):
         parsed_args = self.check_parser(self.cmd, args, verify_args)
         self.cmd.take_action(parsed_args)
         expected = [mock.call(
-            '/instances/%s/states/power' % s.uuid,
+            '/servers/%s/states/power' % s.uuid,
             data={'target': self.action}) for s in fake_servers]
         self.assertEqual(expected, mock_update_all.call_args_list)
 
@@ -588,7 +588,7 @@ class TestServerLockActionBase(test_base.TestBaremetalComputeV1):
         parsed_args = self.check_parser(self.cmd, args, verify_args)
         self.cmd.take_action(parsed_args)
         mock_update_all.assert_called_with(
-            '/instances/%s/states/lock' % fake_server.uuid,
+            '/servers/%s/states/lock' % fake_server.uuid,
             data={'target': self.action})
 
     def _test_server_lock_action_multiple(self, mock_update_all,
@@ -600,7 +600,7 @@ class TestServerLockActionBase(test_base.TestBaremetalComputeV1):
         parsed_args = self.check_parser(self.cmd, args, verify_args)
         self.cmd.take_action(parsed_args)
         expected = [mock.call(
-            '/instances/%s/states/lock' % s.uuid,
+            '/servers/%s/states/lock' % s.uuid,
             data={'target': self.action}) for s in fake_servers]
         self.assertEqual(expected, mock_update_all.call_args_list)
 
