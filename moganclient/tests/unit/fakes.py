@@ -248,7 +248,7 @@ class FakeServer(object):
             "created_at": "2016-11-14T08:03:18.926737+00:00",
             "description": "fake_description",
             "image_uuid": "image-id-" + uuidutils.generate_uuid(dashed=False),
-            "instance_type_uuid": "server-type-id-" + uuidutils.generate_uuid(
+            "flavor_uuid": "server-type-id-" + uuidutils.generate_uuid(
                 dashed=False),
             "links": [],
             "name": "server-name-" + uuidutils.generate_uuid(
