@@ -543,3 +543,68 @@ class ShowServerNetworkInfo(command.Lister):
         return (columns,
                 (utils.get_dict_properties(
                     s, columns, formatters=formatters) for s in nics))
+
+
+class AddFloatingIP(command.Command):
+    _description = _("Add floating IP address to server")
+
+    def get_parser(self, prog_name):
+        parser = super(AddFloatingIP, self).get_parser(prog_name)
+        parser.add_argument(
+            "server",
+            metavar="<server>",
+            help=_("Server to receive the floating IP address (name or ID)"),
+        )
+        parser.add_argument(
+            "ip_address",
+            metavar="<ip-address>",
+            help=_("Floating IP address to assign to server (IP only)"),
+        )
+        parser.add_argument(
+            "--fixed-ip-address",
+            metavar="<ip-address>",
+            help=_("Fixed IP address to associate with this floating IP "
+                   "address"),
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
+        )
+
+        bc_client.server.add_floating_ip(server.uuid,
+                                         parsed_args.ip_address,
+                                         parsed_args.fixed_ip_address)
+
+
+class RemoveFloatingIP(command.Command):
+    _description = _("Remove floating IP address from server")
+
+    def get_parser(self, prog_name):
+        parser = super(RemoveFloatingIP, self).get_parser(prog_name)
+        parser.add_argument(
+            "server",
+            metavar="<server>",
+            help=_(
+                "Server to remove the floating IP address from (name or ID)"
+            ),
+        )
+        parser.add_argument(
+            "ip_address",
+            metavar="<ip-address>",
+            help=_("Floating IP address to remove from server (IP only)"),
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
+        )
+
+        bc_client.server.remove_floating_ip(server.uuid,
+                                            parsed_args.ip_address)
