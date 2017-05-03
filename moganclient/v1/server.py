@@ -126,3 +126,14 @@ class ServerManager(base.ManagerWithFind):
     def get_server_nics(self, server_id):
         url = '/servers/%s/networks' % base.getid(server_id)
         return self._list(url, response_key='nics')
+
+    def add_floating_ip(self, server_id, ip_address, fixed_ip_address):
+        url = '/servers/%s/networks/floatingips' % base.getid(server_id)
+        data = {'address': ip_address,
+                'fixed_address': fixed_ip_address}
+        return self._create(url, data=data)
+
+    def remove_floating_ip(self, server_id, ip_address):
+        url = '/servers/%(server)s/networks/floatingips/%(ip)s' % {
+            'server': base.getid(server_id), 'ip': ip_address}
+        return self._delete(url)
