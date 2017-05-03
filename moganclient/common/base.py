@@ -128,7 +128,8 @@ class Manager(object):
 
         if response_key:
             return self.resource_class(self, body[response_key], resp=resp)
-        return self.resource_class(self, body, resp=resp)
+        if body:
+            return self.resource_class(self, body, resp=resp)
 
     def _get(self, url, response_key=None, return_raw=False, headers=None):
         if headers is None:

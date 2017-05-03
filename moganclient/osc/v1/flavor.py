@@ -24,7 +24,6 @@ from osc_lib.command import command
 from osc_lib import exceptions
 from osc_lib import utils
 
-from moganclient.common import base
 from moganclient.common.i18n import _
 
 LOG = logging.getLogger(__name__)
@@ -178,6 +177,12 @@ class SetFlavor(command.Command):
                    "(specify both --property and --no-property to "
                    "overwrite the current properties)"),
         )
+        parser.add_argument(
+            '--project',
+            metavar='<project>',
+            help=_('Set flavor access to project (name or ID) '
+                   '(admin only)'),
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -232,10 +237,22 @@ class SetFlavor(command.Command):
                 LOG.error(_("Failed to update flavor property with key/value "
                             "'%(key)s': %(e)s") % {'key': set_property,
                                                    'e': e})
+
+        if parsed_args.project:
+            try:
+                if data.is_public:
+                    msg = _("Cannot set access for a public flavor")
+                    raise exceptions.CommandError(msg)
+                else:
+                    bc_client.flavor.add_tenant_access(
+                        data, parsed_args.project)
+            except Exception as e:
+                LOG.error(_("Failed to set flavor access to project: %s"), e)
+                result += 1
+
         if result > 0:
-            msg = (_("Set flavor %(flavor)s property failed.") % {
-                'flavor': base.getid(data)})
-            raise exceptions.CommandError(msg)
+            raise exceptions.CommandError(_("Command Failed: One or more of"
+                                            " the operations failed"))
 
 
 class ShowFlavor(command.ShowOne):
@@ -279,6 +296,12 @@ class UnsetFlavor(command.Command):
             help=_("Property to remove from <flavor> "
                    "(repeat option to remove multiple properties)")
         )
+        parser.add_argument(
+            '--project',
+            metavar='<project>',
+            help=_('Remove flavor access from project (name or ID) '
+                   '(admin only)'),
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -304,8 +327,19 @@ class UnsetFlavor(command.Command):
                 LOG.error(_("Failed to remove flavor property with key "
                             "'%(key)s': %(e)s") % {'key': each_key, 'e': e})
 
+        if parsed_args.project:
+            try:
+                if data.is_public:
+                    msg = _("Cannot remove access for a public flavor")
+                    raise exceptions.CommandError(msg)
+                else:
+                    bc_client.flavor.remove_tenant_access(
+                        data, parsed_args.project)
+            except Exception as e:
+                LOG.error(_("Failed to remove flavor access to project: "
+                            "%s"), e)
+                result += 1
+
         if result > 0:
-            total = len(unset_property_key)
-            msg = (_("%(result)s of %(total)s flavor property failed "
-                     "to remove.") % {'result': result, 'total': total})
-            raise exceptions.CommandError(msg)
+            raise exceptions.CommandError(_("Command Failed: One or more of"
+                                            " the operations failed"))
