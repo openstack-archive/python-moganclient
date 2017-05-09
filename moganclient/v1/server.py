@@ -31,9 +31,9 @@ class ServerManager(base.ManagerWithFind):
     def create(self, name, image_uuid, flavor_uuid, networks,
                description=None, availability_zone=None, metadata=None,
                userdata=None, files=None, key_name=None, min_count=None,
-               max_count=None):
+               max_count=None, hint=None):
         url = '/servers'
-        data = {
+        server = {
             'name': name,
             'image_uuid': image_uuid,
             'flavor_uuid': flavor_uuid,
@@ -59,14 +59,14 @@ class ServerManager(base.ManagerWithFind):
                     pass
 
             userdata_b64 = base64.b64encode(userdata).decode('utf-8')
-            data["user_data"] = userdata_b64
+            server["user_data"] = userdata_b64
 
         # Files are a slight bit tricky. They're passed in a "personality"
         # list to the POST. Each item is a dict giving a file name and the
         # base64-encoded contents of the file. We want to allow passing
         # either an open file *or* some contents as files here.
         if files:
-            personality = data['personality'] = []
+            personality = server['personality'] = []
             for filepath, file_or_string in sorted(files.items(),
                                                    key=lambda x: x[0]):
                 if hasattr(file_or_string, 'read'):
@@ -83,18 +83,20 @@ class ServerManager(base.ManagerWithFind):
                 })
 
         if availability_zone is not None:
-            data['availability_zone'] = availability_zone
+            server['availability_zone'] = availability_zone
         if description is not None:
-            data['description'] = description
+            server['description'] = description
         if key_name is not None:
-            data['key_name'] = key_name
+            server['key_name'] = key_name
         if metadata is not None:
-            data['metadata'] = metadata
+            server['metadata'] = metadata
         if min_count is not None:
-            data['min_count'] = min_count
+            server['min_count'] = min_count
         if max_count is not None:
-            data['max_count'] = max_count
-
+            server['max_count'] = max_count
+        data = {'server': server}
+        if hint:
+            data['scheduler_hints'] = hint
         return self._create(url, data=data)
 
     def delete(self, server_id):
