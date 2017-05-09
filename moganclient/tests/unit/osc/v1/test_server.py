@@ -87,12 +87,12 @@ class TestServerCreate(TestServer):
             if 'net-id' in nic:
                 nic['net_id'] = nic['net-id']
                 del nic['net-id']
-        called_data = {'name': name,
-                       'image_uuid': image_id,
-                       'flavor_uuid': flavor_id,
-                       'networks': called_networks,
-                       'min_count': 1,
-                       'max_count': 1}
+        called_data = {'server': {'name': name,
+                                  'image_uuid': image_id,
+                                  'flavor_uuid': flavor_id,
+                                  'networks': called_networks,
+                                  'min_count': 1,
+                                  'max_count': 1}}
         for network in networks:
             network_id = network.get('net-id')
             port_type = network.get('port-type')
@@ -108,15 +108,15 @@ class TestServerCreate(TestServer):
         if description:
             arglist.extend(['--description', description])
             verifylist.append(('description', description))
-            called_data['description'] = description
+            called_data['server']['description'] = description
         if availability_zone:
             arglist.extend(['--availability-zone', availability_zone])
             verifylist.append(('availability_zone', availability_zone))
-            called_data['availability_zone'] = availability_zone
+            called_data['server']['availability_zone'] = availability_zone
         if extra:
             arglist.extend(['--property', extra])
             verifylist.append(('property', {'key1': 'test'}))
-            called_data['extra'] = {'key1': 'test'}
+            called_data['server']['extra'] = {'key1': 'test'}
 
         flavor_obj = mock.Mock()
         flavor_obj.uuid = flavor_id
