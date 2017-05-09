@@ -147,6 +147,12 @@ class CreateServer(command.ShowOne):
             default=1,
             help=_('Maximum number of servers to launch (default=1)'),
         )
+        parser.add_argument(
+            "--hint",
+            metavar="<key=value>",
+            action=parseractions.KeyValueAction,
+            help=_("Hints for the Mogan scheduler (optional extension)")
+        )
 
         return parser
 
@@ -212,7 +218,8 @@ class CreateServer(command.ShowOne):
             key_name=parsed_args.key_name,
             extra=parsed_args.property,
             min_count=parsed_args.min,
-            max_count=parsed_args.max
+            max_count=parsed_args.max,
+            hint=parsed_args.hint
         )
 
         try:
