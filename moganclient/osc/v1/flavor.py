@@ -39,6 +39,44 @@ class CreateFlavor(command.ShowOne):
             metavar="<name>",
             help=_("New baremetal flavor name")
         )
+        parser.add_argument(
+            "--cpus",
+            type=int,
+            metavar="<cpus>",
+            help=_("Number of cpus")
+        )
+        parser.add_argument(
+            "--cpu-model",
+            metavar="<cpu-model>",
+            help=_("Cpu model of the flavor")
+        )
+        parser.add_argument(
+            "--ram",
+            type=int,
+            metavar="<size-mb>",
+            help=_("Memory size in MB")
+        )
+        parser.add_argument(
+            "--ram-type",
+            metavar="<ram-type>",
+            help=_("Ram type of the flavor")
+        )
+        parser.add_argument(
+            "--nic",
+            metavar="speed=SPEED[,type=PORT_TYPE]",
+            required_keys=['speed', 'type'],
+            action=parseractions.MultiKeyValueAction,
+            help=_("NIC of the flavor. "
+                   "Specify option multiple times to create multiple NICs."),
+        )
+        parser.add_argument(
+            "--disk",
+            metavar="size_gb=SIZE[,type=DISK_TYPE]",
+            required_keys=['size_gb', 'type'],
+            action=parseractions.MultiKeyValueAction,
+            help=_("Disk of the flavor. "
+                   "Specify option multiple times to create multiple disks."),
+        )
         public_group = parser.add_mutually_exclusive_group()
         public_group.add_argument(
             "--public",
@@ -74,8 +112,24 @@ class CreateFlavor(command.ShowOne):
         if parsed_args.private:
             is_public = False
 
+        cpus = {}
+        if parsed_args.cpus:
+            cpus['cores'] = parsed_args.cpus
+        if parsed_args.cpu_model:
+            cpus['model'] = parsed_args.cpu_model
+
+        ram = {}
+        if parsed_args.ram:
+            cpus['size_mb'] = parsed_args.ram
+        if parsed_args.ram_type:
+            cpus['type'] = parsed_args.ram_type
+
         data = bc_client.flavor.create(
             name=parsed_args.name,
+            cpus=cpus,
+            memory=ram,
+            nics=parsed_args.nic,
+            disks=parsed_args.disk,
             is_public=is_public,
             description=parsed_args.description,
         )
