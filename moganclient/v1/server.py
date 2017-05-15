@@ -137,3 +137,8 @@ class ServerManager(base.ManagerWithFind):
         url = '/servers/%(server)s/networks/floatingips/%(ip)s' % {
             'server': base.getid(server_id), 'ip': ip_address}
         return self._delete(url)
+
+    def get_serial_console(self, server_id):
+        url = '/servers/%(server)s/serial_console' % {
+            'server': base.getid(server_id)}
+        return self._get(url)
