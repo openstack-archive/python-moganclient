@@ -602,3 +602,39 @@ class RemoveFloatingIP(command.Command):
 
         bc_client.server.remove_floating_ip(server.uuid,
                                             parsed_args.ip_address)
+
+
+class ShowConsoleURL(command.ShowOne):
+    _description = _("Show server's remote console URL")
+
+    def get_parser(self, prog_name):
+        parser = super(ShowConsoleURL, self).get_parser(prog_name)
+        parser.add_argument(
+            'server',
+            metavar='<server>',
+            help=_("Server to show URL (name or ID)")
+        )
+        type_group = parser.add_mutually_exclusive_group()
+        type_group.add_argument(
+            '--serial',
+            dest='url_type',
+            action='store_const',
+            const='serial',
+            help=_("Show serial console URL"),
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
+        )
+
+        data = bc_client.server.get_serial_console(server.uuid)
+        if not data:
+            return ({}, {})
+
+        info = {}
+        info.update(data.get('console'))
+        return zip(*sorted(info.items()))
