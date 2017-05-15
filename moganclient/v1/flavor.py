@@ -23,10 +23,19 @@ class Flavor(base.Resource):
 class FlavorManager(base.ManagerWithFind):
     resource_class = Flavor
 
-    def create(self, name, is_public, description=None):
+    def create(self, name, cpus, memory, nics, disks,
+               is_public, description=None):
         url = '/flavors'
+        if nics is None:
+            nics = []
+        if disks is None:
+            disks = []
         data = {
             'name': name,
+            'cpus': cpus,
+            'memory': memory,
+            'nics': nics,
+            'disks': disks,
             'is_public': is_public,
             'description': description,
         }

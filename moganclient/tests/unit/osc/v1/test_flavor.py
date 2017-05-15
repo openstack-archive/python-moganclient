@@ -68,6 +68,10 @@ class TestFlavorCreate(TestFlavor):
         mock_create.assert_called_once_with('/flavors',
                                             data={
                                                 'name': 'flavor1',
+                                                'cpus': {},
+                                                'memory': {},
+                                                'nics': [],
+                                                'disks': [],
                                                 'is_public': True,
                                                 'description': None,
                                             })
@@ -89,6 +93,10 @@ class TestFlavorCreate(TestFlavor):
         mock_create.assert_called_once_with('/flavors',
                                             data={
                                                 'name': 'flavor1',
+                                                'cpus': {},
+                                                'memory': {},
+                                                'nics': [],
+                                                'disks': [],
                                                 'is_public': True,
                                                 'description': None,
                                             })
@@ -110,6 +118,10 @@ class TestFlavorCreate(TestFlavor):
         mock_create.assert_called_once_with('/flavors',
                                             data={
                                                 'name': 'flavor1',
+                                                'cpus': {},
+                                                'memory': {},
+                                                'nics': [],
+                                                'disks': [],
                                                 'is_public': False,
                                                 'description': None,
                                             })
@@ -132,6 +144,10 @@ class TestFlavorCreate(TestFlavor):
             '/flavors',
             data={
                 'name': 'flavor1',
+                'cpus': {},
+                'memory': {},
+                'nics': [],
+                'disks': [],
                 'is_public': True,
                 'description': 'test description.',
             })
@@ -143,11 +159,25 @@ class TestFlavorCreate(TestFlavor):
     def test_flavor_create_with_property(self, mock_update, mock_get,
                                          mock_create):
         arglist = [
+            '--cpus', '16',
+            '--cpu-model', 'Intel',
+            '--ram', '4096',
+            '--ram-type', 'DDR3',
+            '--nic', 'speed=10Gbps,type=Ethernet',
+            '--nic', 'speed=100Gbps,type=Infiniband',
+            '--disk', 'size_gb=1024,type=SSD',
             '--property', 'key1=value1',
             'flavor1',
         ]
         verifylist = [
             ('property', {'key1': 'value1'}),
+            ('cpus', 16),
+            ('cpu_model', 'Intel'),
+            ('ram', 4096),
+            ('ram_type', 'DDR3'),
+            ('nic', [{'speed': '10Gbps', 'type': 'Ethernet'},
+                     {'speed': '100Gbps', 'type': 'Infiniband'}]),
+            ('disk', [{'size_gb': '1024', 'type': 'SSD'}]),
             ('name', 'flavor1'),
         ]
         mock_create.return_value = self.fake_flavor
@@ -157,6 +187,16 @@ class TestFlavorCreate(TestFlavor):
         mock_create.assert_called_once_with('/flavors',
                                             data={
                                                 'name': 'flavor1',
+                                                'cpus': {'cores': 16,
+                                                         'model': 'Intel'},
+                                                'memory': {'size_mb': 4096,
+                                                           'type': 'DDR3'},
+                                                'nics': [{'speed': '10Gbps',
+                                                          'type': 'Ethernet'},
+                                                         {'speed': '100Gbps',
+                                                          'type': 'Infiniband'}],
+                                                'disks': [{'size_gb': '1024',
+                                                           'type': 'SSD'}],
                                                 'is_public': True,
                                                 'description': None,
                                             })
