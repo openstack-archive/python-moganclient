@@ -138,6 +138,16 @@ class ServerManager(base.ManagerWithFind):
             'server': base.getid(server_id), 'ip': ip_address}
         return self._delete(url)
 
+    def add_interface(self, server_id, net_id):
+        url = '/servers/%s/networks/interfaces' % base.getid(server_id)
+        data = {'net_id': net_id}
+        return self._create(url, data=data)
+
+    def remove_interface(self, server_id, port_id):
+        url = '/servers/%(server)s/networks/interfaces/%(port_id)s' % {
+            'server': base.getid(server_id), 'port_id': port_id}
+        return self._delete(url)
+
     def get_serial_console(self, server_id):
         url = '/servers/%(server)s/serial_console' % {
             'server': base.getid(server_id)}
