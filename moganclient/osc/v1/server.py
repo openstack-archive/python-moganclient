@@ -657,6 +657,70 @@ class RemoveFloatingIP(command.Command):
                                             parsed_args.ip_address)
 
 
+class AddInterface(command.Command):
+    _description = _("Add interface to server")
+
+    def get_parser(self, prog_name):
+        parser = super(AddInterface, self).get_parser(prog_name)
+        parser.add_argument(
+            "--net-id",
+            metavar="<net-id>",
+            help=_("Network to link to server"),
+        )
+        parser.add_argument(
+            "--port-id",
+            metavar="<port-id>",
+            help=_("Port to link to server"),
+        )
+        parser.add_argument(
+            "server",
+            metavar="<server>",
+            help=_("Server to attach interface for"),
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
+        )
+
+        bc_client.server.add_interface(server.uuid,
+                                       parsed_args.net_id,
+                                       parsed_args.port_id)
+
+
+class RemoveInterface(command.Command):
+    _description = _("Remove interface from server")
+
+    def get_parser(self, prog_name):
+        parser = super(RemoveInterface, self).get_parser(prog_name)
+        parser.add_argument(
+            "port-id",
+            metavar="<port-id>",
+            help=_("Interface to remove from server"),
+        )
+        parser.add_argument(
+            "server",
+            metavar="<server>",
+            help=_(
+                "Server to remove the interface from"
+            ),
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
+        )
+
+        bc_client.server.remove_interface(server.uuid,
+                                          parsed_args.port_id)
+
+
 class ShowConsoleURL(command.ShowOne):
     _description = _("Show server's remote console URL")
 
