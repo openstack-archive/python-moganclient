@@ -675,3 +675,68 @@ class TestServerShowNetInfo(TestServer):
         self.cmd.take_action(parsed_args)
         mock_get.assert_called_once_with(self.fake_server.uuid)
         mock_netinfo.assert_called_once_with(self.fake_server.uuid)
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(server_mgr.ServerManager, '_create')
+class TestServerAddInterface(TestServer):
+    def setUp(self):
+        super(TestServerAddInterface, self).setUp()
+        self.cmd = server.AddInterface(self.app, None)
+
+    def test_add_interface_with_net_id(self, mock_create, mock_find):
+        fake_server = fakes.FakeServer.create_one_server()
+        mock_find.return_value = fake_server
+        net_id = uuidutils.generate_uuid()
+        server = fake_server.uuid
+        args = ['--net_id', net_id, server]
+        verify_args = [
+            ('net_id', net_id),
+            ('server', server)
+        ]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        expected_url = '/servers/%s/networks/interfaces' % server
+        expected_data = {'net_id': net_id, 'port_id': None}
+        mock_create.assert_called_once_with(expected_url,
+                                            data=expected_data)
+
+    def test_add_interface_with_port_id(self, mock_create, mock_find):
+        fake_server = fakes.FakeServer.create_one_server()
+        mock_find.return_value = fake_server
+        port_id = uuidutils.generate_uuid()
+        server = fake_server.uuid
+        args = ['--port_id', port_id, server]
+        verify_args = [
+            ('port_id', port_id),
+            ('server', server)
+        ]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        expected_url = '/servers/%s/networks/interfaces' % server
+        expected_data = {'net_id': None,'port_id': port_id}
+        mock_create.assert_called_once_with(expected_url,
+                                            data=expected_data)
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(server_mgr.ServerManager, '_delete')
+class TestServerRemoveInterface(TestServer):
+    def setUp(self):
+        super(TestServerRemoveInterface, self).setUp()
+        self.cmd = server.RemoveInterface(self.app, None)
+
+    def test_remove_interface(self, mock_delete, mock_find):
+        fake_server = fakes.FakeServer.create_one_server()
+        mock_find.return_value = fake_server
+        port_id = uuidutils.generate_uuid()
+        server = fake_server.uuid
+        args = [port_id, server]
+        verify_args = [
+            ('port_id', port_id),
+            ('server', server)
+        ]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        mock_delete.assert_called_with('/servers/%(server)s/networks/interfaces/%(port_id)s' % {
+            'server': server, 'port_id': port_id})
