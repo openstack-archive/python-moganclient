@@ -532,7 +532,7 @@ class ShowServerNetworkInfo(command.Lister):
         )
         data = bc_client.server.get_server_nics(server.uuid)
         columns = ('network_id', 'port_id', 'mac_address', 'fixed_ips',
-                   'floatingip', 'port_type')
+                   'floating_ip', 'port_type')
         formatters = {'fixed_ips': lambda s: json.dumps(s, indent=4)}
         return (columns,
                 (utils.get_item_properties(
