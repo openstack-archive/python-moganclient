@@ -16,7 +16,6 @@
 
 """Mogan v1 Baremetal flavor action implementations"""
 
-import copy
 import logging
 
 from osc_lib.cli import parseractions
@@ -50,17 +49,30 @@ class CreateFlavor(command.ShowOne):
             action="store_true",
             help=_("Flavor is not available to other projects")
         )
+        public_group.add_argument(
+            "--disabled",
+            metavar='<disabled|True>',
+            default=False,
+            help=_("Flavor is disabled for users.")
+        )
         parser.add_argument(
             "--description",
             metavar="<description>",
             help=_("Flavor description"),
         )
         parser.add_argument(
-            "--property",
+            "--resources",
             metavar="<key=value>",
             action=parseractions.KeyValueAction,
-            help=_("Property to add to this flavor "
-                   "(repeat option to set multiple properties)")
+            help=_("Resources to add to this flavor "
+                   "(repeat option to set multiple resources)")
+        )
+        parser.add_argument(
+            "--resource-traits",
+            metavar="<key=value>",
+            action=parseractions.KeyValueAction,
+            help=_("Resource traits to add to this flavor "
+                   "(repeat option to set multiple resource traits)")
         )
         return parser
 
@@ -76,15 +88,13 @@ class CreateFlavor(command.ShowOne):
 
         data = bc_client.flavor.create(
             name=parsed_args.name,
-            is_public=is_public,
             description=parsed_args.description,
+            resources=parsed_args.resources,
+            resource_traits=parsed_args.resource_traits,
+            is_public=is_public,
+            disabled=parsed_args.disabled,
         )
         info.update(data._info)
-        if parsed_args.property:
-            bc_client.flavor.update_extra_specs(data,
-                                                parsed_args.property)
-            extra_specs = bc_client.flavor.get_extra_specs(data)
-            info.update(extra_specs)
 
         return zip(*sorted(info.items()))
 
@@ -136,14 +146,16 @@ class ListFlavor(command.Lister):
             "Name",
             "Is Public",
             "Description",
-            "Properties",
+            "Resources",
+            "Resource Traits",
         )
         columns = (
             "UUID",
             "Name",
             "Is Public",
             "Description",
-            "Extra Specs",
+            "Resources",
+            "Resource Traits",
         )
 
         return (column_headers,
@@ -163,21 +175,6 @@ class SetFlavor(command.Command):
             help=_("Flavor to modify (name or UUID)")
         )
         parser.add_argument(
-            "--property",
-            metavar="<key=value>",
-            action=parseractions.KeyValueAction,
-            help=_("Property to set on <flavor> "
-                   "(repeat option to set multiple properties)")
-        )
-        parser.add_argument(
-            "--no-property",
-            dest="no_property",
-            action="store_true",
-            help=_("Remove all properties from <flavor> "
-                   "(specify both --property and --no-property to "
-                   "overwrite the current properties)"),
-        )
-        parser.add_argument(
             '--project',
             metavar='<project>',
             help=_('Set flavor access to project (name or ID) '
@@ -193,51 +190,7 @@ class SetFlavor(command.Command):
             parsed_args.flavor,
         )
 
-        set_property = None
-        del_property_key = None
-        # NOTE(RuiChen): extra specs update API is append mode, so if the
-        #                options is overwrite mode, the update and delete
-        #                properties need to be handled in client side.
-        if parsed_args.no_property and parsed_args.property:
-            # override
-            del_property_key = data.extra_specs.keys()
-            set_property = copy.deepcopy(parsed_args.property)
-        elif parsed_args.property:
-            # append
-            set_property = copy.deepcopy(parsed_args.property)
-        elif parsed_args.no_property:
-            # clean
-            del_property_key = data.extra_specs.keys()
-
         result = 0
-        if del_property_key is not None:
-            for each_key in del_property_key:
-                try:
-                    # If the key is in the set_property, it will be updated
-                    # in the follow logic.
-                    if (set_property is None or
-                            each_key not in set_property):
-                        bc_client.flavor.delete_extra_specs(
-                            data,
-                            each_key
-                        )
-                except Exception as e:
-                    result += 1
-                    LOG.error(_("Failed to remove flavor property with key "
-                                "'%(key)s': %(e)s") % {'key': each_key,
-                                                       'e': e})
-        if set_property is not None:
-            try:
-                bc_client.flavor.update_extra_specs(
-                    data,
-                    set_property
-                )
-            except Exception as e:
-                result += 1
-                LOG.error(_("Failed to update flavor property with key/value "
-                            "'%(key)s': %(e)s") % {'key': set_property,
-                                                   'e': e})
-
         if parsed_args.project:
             try:
                 if data.is_public:
@@ -290,13 +243,6 @@ class UnsetFlavor(command.Command):
             help=_("Flavor to modify (name or UUID)")
         )
         parser.add_argument(
-            "--property",
-            metavar="<key>",
-            action='append',
-            help=_("Property to remove from <flavor> "
-                   "(repeat option to remove multiple properties)")
-        )
-        parser.add_argument(
             '--project',
             metavar='<project>',
             help=_('Remove flavor access from project (name or ID) '
@@ -312,21 +258,7 @@ class UnsetFlavor(command.Command):
             parsed_args.flavor,
         )
 
-        unset_property_key = []
-        if parsed_args.property:
-            unset_property_key = list(
-                set(data.extra_specs.keys()).intersection(
-                    set(parsed_args.property)))
-
         result = 0
-        for each_key in unset_property_key:
-            try:
-                bc_client.flavor.delete_extra_specs(data, each_key)
-            except Exception as e:
-                result += 1
-                LOG.error(_("Failed to remove flavor property with key "
-                            "'%(key)s': %(e)s") % {'key': each_key, 'e': e})
-
         if parsed_args.project:
             try:
                 if data.is_public:

@@ -23,12 +23,16 @@ class Flavor(base.Resource):
 class FlavorManager(base.ManagerWithFind):
     resource_class = Flavor
 
-    def create(self, name, is_public, description=None):
+    def create(self, name, resources, resource_traits, is_public, disabled,
+               description=None):
         url = '/flavors'
         data = {
             'name': name,
-            'is_public': is_public,
             'description': description,
+            'resources': resources,
+            'resource_traits': resource_traits,
+            'is_public': is_public,
+            'disabled': disabled,
         }
         return self._create(url, data=data)
 
@@ -43,20 +47,6 @@ class FlavorManager(base.ManagerWithFind):
     def list(self):
         url = '/flavors'
         return self._list(url, response_key='flavors')
-
-    def get_extra_specs(self, flavor):
-        url = '/flavors/%s/extraspecs' % base.getid(flavor)
-        return self._get(url, return_raw=True)
-
-    def update_extra_specs(self, flavor, extra_specs):
-        url = '/flavors/%s/extraspecs' % base.getid(flavor)
-        data = extra_specs
-        return self._update(url, data=data, return_raw=True)
-
-    def delete_extra_specs(self, flavor, key):
-        url = '/flavors/%(id)s/extraspecs/%(key)s' % {
-            'id': base.getid(flavor), 'key': key}
-        return self._delete(url)
 
     def add_tenant_access(self, flavor, project):
         url = '/flavors/%s/access' % base.getid(flavor)
