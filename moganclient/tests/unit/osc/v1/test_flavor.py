@@ -31,9 +31,11 @@ class TestFlavor(test_base.TestBaremetalComputeV1):
     columns = (
         'created_at',
         'description',
-        'extra_specs',
+        'disabled',
         'is_public',
         'name',
+        'resource_traits',
+        'resources',
         'updated_at',
         'uuid',
     )
@@ -41,9 +43,11 @@ class TestFlavor(test_base.TestBaremetalComputeV1):
     data = (
         fake_flavor.created_at,
         fake_flavor.description,
-        fake_flavor.extra_specs,
+        fake_flavor.disabled,
         fake_flavor.is_public,
         fake_flavor.name,
+        fake_flavor.resource_traits,
+        fake_flavor.resources,
         fake_flavor.updated_at,
         fake_flavor.uuid,
     )
@@ -58,9 +62,11 @@ class TestFlavorCreate(TestFlavor):
     def test_flavor_create(self, mock_create):
         arglist = [
             'flavor1',
+            '--resources', 'k1=v1'
         ]
         verifylist = [
             ('name', 'flavor1'),
+            ('resources', {'k1': 'v1'}),
         ]
         mock_create.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -69,7 +75,9 @@ class TestFlavorCreate(TestFlavor):
                                             data={
                                                 'name': 'flavor1',
                                                 'is_public': True,
+                                                'disabled': False,
                                                 'description': None,
+                                                'resources': {'k1': 'v1'},
                                             })
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
@@ -90,6 +98,7 @@ class TestFlavorCreate(TestFlavor):
                                             data={
                                                 'name': 'flavor1',
                                                 'is_public': True,
+                                                'disabled': False,
                                                 'description': None,
                                             })
         self.assertEqual(self.columns, columns)
@@ -111,6 +120,7 @@ class TestFlavorCreate(TestFlavor):
                                             data={
                                                 'name': 'flavor1',
                                                 'is_public': False,
+                                                'disabled': False,
                                                 'description': None,
                                             })
         self.assertEqual(self.columns, columns)
@@ -133,6 +143,7 @@ class TestFlavorCreate(TestFlavor):
             data={
                 'name': 'flavor1',
                 'is_public': True,
+                'disabled': False,
                 'description': 'test description.',
             })
         self.assertEqual(self.columns, columns)
@@ -140,36 +151,30 @@ class TestFlavorCreate(TestFlavor):
 
     @mock.patch.object(flavor_mgr.FlavorManager, '_get')
     @mock.patch.object(flavor_mgr.FlavorManager, '_update')
-    def test_flavor_create_with_property(self, mock_update, mock_get,
-                                         mock_create):
+    def test_flavor_create_with_resources(self, mock_update, mock_get,
+                                          mock_create):
         arglist = [
-            '--property', 'key1=value1',
+            '--resources', 'k1=v1',
             'flavor1',
         ]
         verifylist = [
-            ('property', {'key1': 'value1'}),
+            ('resources', {'k1': 'v1'}),
             ('name', 'flavor1'),
         ]
         mock_create.return_value = self.fake_flavor
-        mock_get.return_value = {'extra_specs': {'key1': 'value1'}}
+        mock_get.return_value = {'resources': {'k1': 'v1'}}
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with('/flavors',
                                             data={
                                                 'name': 'flavor1',
                                                 'is_public': True,
+                                                'disabled': False,
                                                 'description': None,
+                                                'resources': {'k1': 'v1'},
                                             })
-        expected_url = '/flavors/%s/extraspecs' % base.getid(self.fake_flavor)
-        mock_update.assert_called_once_with(expected_url,
-                                            data=parsed_args.property,
-                                            return_raw=True)
-        mock_get.assert_called_once_with(expected_url, return_raw=True)
         self.assertEqual(self.columns, columns)
         expected_data = copy.deepcopy(self.data)
-        # update extra specs
-        expected_data[2].pop('key0')
-        expected_data[2].update({'key1': 'value1'})
         self.assertEqual(expected_data, data)
 
 
@@ -220,7 +225,8 @@ class TestFlavorList(TestFlavor):
         "Name",
         "Is Public",
         "Description",
-        "Properties",
+        "Resources",
+        "Resource Traits",
     )
 
     list_data = ((
@@ -228,7 +234,8 @@ class TestFlavorList(TestFlavor):
         TestFlavor.fake_flavor.name,
         TestFlavor.fake_flavor.is_public,
         TestFlavor.fake_flavor.description,
-        TestFlavor.fake_flavor.extra_specs,
+        TestFlavor.fake_flavor.resources,
+        TestFlavor.fake_flavor.resource_traits,
         ),)
 
     def setUp(self):
@@ -244,80 +251,6 @@ class TestFlavorList(TestFlavor):
         mock_list.assert_called_once_with('/flavors', response_key='flavors')
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
-
-
-@mock.patch.object(utils, 'find_resource')
-@mock.patch.object(flavor_mgr.FlavorManager, '_delete')
-@mock.patch.object(flavor_mgr.FlavorManager, '_update')
-class TestFlavorSet(TestFlavor):
-    def setUp(self):
-        super(TestFlavorSet, self).setUp()
-        self.cmd = flavor.SetFlavor(self.app, None)
-
-    def test_flavor_set_property(self, mock_update, mock_delete, mock_find):
-        arglist = [
-            '--property', 'key1=value1',
-            '--property', 'key2=value2',
-            'flavor1',
-        ]
-        verifylist = [
-            ('property', {'key1': 'value1', 'key2': 'value2'}),
-            ('flavor', 'flavor1'),
-        ]
-        mock_find.return_value = self.fake_flavor
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        result = self.cmd.take_action(parsed_args)
-        expected_url = '/flavors/%s/extraspecs' % base.getid(self.fake_flavor)
-        expected_data = {'key1': 'value1', 'key2': 'value2'}
-        mock_update.assert_called_once_with(expected_url,
-                                            data=expected_data,
-                                            return_raw=True)
-        self.assertNotCalled(mock_delete)
-        self.assertIsNone(result)
-
-    def test_flavor_set_clean_property(self, mock_update, mock_delete,
-                                       mock_find):
-        arglist = [
-            '--no-property',
-            'flavor1',
-        ]
-        verifylist = [
-            ('no_property', True),
-            ('flavor', 'flavor1'),
-        ]
-        mock_find.return_value = self.fake_flavor
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        result = self.cmd.take_action(parsed_args)
-        expected_url = '/flavors/%s/extraspecs/key0' % base.getid(
-            self.fake_flavor)
-        self.assertNotCalled(mock_update)
-        mock_delete.assert_called_once_with(expected_url)
-        self.assertIsNone(result)
-
-    def test_flavor_set_overrider_property(self, mock_update, mock_delete,
-                                           mock_find):
-        arglist = [
-            '--property', 'key1=value1',
-            '--no-property',
-            'flavor1',
-        ]
-        verifylist = [
-            ('property', {'key1': 'value1'}),
-            ('no_property', True),
-            ('flavor', 'flavor1'),
-        ]
-        mock_find.return_value = self.fake_flavor
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        result = self.cmd.take_action(parsed_args)
-        expected_url = '/flavors/%s/extraspecs' % base.getid(self.fake_flavor)
-        expected_data = {'key1': 'value1'}
-        mock_update.assert_called_once_with(expected_url,
-                                            data=expected_data,
-                                            return_raw=True)
-        expected_url = '/flavors/%s/extraspecs/key0' % base.getid(
-            self.fake_flavor)
-        mock_delete.assert_called_once_with(expected_url)
-        self.assertIsNone(result)
 
 
 @mock.patch.object(flavor_mgr.FlavorManager, '_get')
@@ -340,29 +273,3 @@ class TestFlavorShow(TestFlavor):
         mock_get.assert_called_once_with(expected_url)
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
-
-
-@mock.patch.object(utils, 'find_resource')
-@mock.patch.object(flavor_mgr.FlavorManager, '_delete')
-class TestFlavorUnset(TestFlavor):
-    def setUp(self):
-        super(TestFlavorUnset, self).setUp()
-        self.cmd = flavor.UnsetFlavor(self.app, None)
-
-    def test_flavor_unset_property(self, mock_delete, mock_find):
-        arglist = [
-            '--property', 'key0',
-            '--property', 'key2',
-            'flavor1',
-        ]
-        verifylist = [
-            ('property', ['key0', 'key2']),
-            ('flavor', 'flavor1'),
-        ]
-        mock_find.return_value = self.fake_flavor
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        result = self.cmd.take_action(parsed_args)
-        expected_url = '/flavors/%s/extraspecs/key0' % base.getid(
-            self.fake_flavor)
-        mock_delete.assert_called_once_with(expected_url)
-        self.assertIsNone(result)
