@@ -169,8 +169,10 @@ class FakeFlavor(object):
         flavor_info = {
             "created_at": "2016-09-27T02:37:21.966342+00:00",
             "description": "fake_description",
-            "extra_specs": {"key0": "value0"},
+            "resources": {"BAREMETAL_GOLD": 1},
+            "resource_traits": {"BAREMETAL_GOLD": "FPGA"},
             "is_public": True,
+            "disabled": False,
             "name": "flavor-name-" + uuidutils.generate_uuid(dashed=False),
             "updated_at": None,
             "uuid": "flavor-id-" + uuidutils.generate_uuid(dashed=False),
