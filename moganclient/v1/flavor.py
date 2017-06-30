@@ -50,11 +50,11 @@ class FlavorManager(base.ManagerWithFind):
         url = '/flavors'
         return self._list(url, response_key='flavors')
 
-    def add_tenant_access(self, flavor, project):
+    def add_project_access(self, flavor, project):
         url = '/flavors/%s/access' % base.getid(flavor)
-        return self._create(url, data={'tenant_id': project})
+        return self._create(url, data={'project_id': project})
 
-    def remove_tenant_access(self, flavor, project):
+    def remove_project_access(self, flavor, project):
         url = '/flavors/%(id)s/access/%(project)s' % {
             'id': base.getid(flavor), 'project': project}
         return self._delete(url)

@@ -108,7 +108,7 @@ class ServerManager(base.ManagerWithFind):
     def list(self, detailed=False, all_projects=False):
         url = '/servers/detail' if detailed else '/servers'
         if all_projects:
-            url = '%s?%s' % (url, 'all_tenants=True')
+            url = '%s?%s' % (url, 'all_projects=True')
         return self._list(url, response_key='servers')
 
     def update(self, server_id, updates):

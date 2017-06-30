@@ -197,7 +197,7 @@ class SetFlavor(command.Command):
                     msg = _("Cannot set access for a public flavor")
                     raise exceptions.CommandError(msg)
                 else:
-                    bc_client.flavor.add_tenant_access(
+                    bc_client.flavor.add_project_access(
                         data, parsed_args.project)
             except Exception as e:
                 LOG.error(_("Failed to set flavor access to project: %s"), e)
@@ -265,7 +265,7 @@ class UnsetFlavor(command.Command):
                     msg = _("Cannot remove access for a public flavor")
                     raise exceptions.CommandError(msg)
                 else:
-                    bc_client.flavor.remove_tenant_access(
+                    bc_client.flavor.remove_project_access(
                         data, parsed_args.project)
             except Exception as e:
                 LOG.error(_("Failed to remove flavor access to project: "

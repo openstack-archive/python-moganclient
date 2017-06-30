@@ -387,7 +387,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         mock_list.return_value = self.fake_servers
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_list.assert_called_once_with('/servers/detail?all_tenants=True',
+        mock_list.assert_called_once_with('/servers/detail?all_projects=True',
                                           response_key='servers')
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
