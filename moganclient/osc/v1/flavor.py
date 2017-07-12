@@ -122,8 +122,8 @@ class DeleteFlavor(command.Command):
                 bc_client.flavor.delete(data.uuid)
             except Exception as e:
                 result += 1
-                LOG.error(_("Failed to delete flavor with name or UUID "
-                            "'%(flavor)s': %(e)s") %
+                LOG.error("Failed to delete flavor with name or UUID "
+                          "'%(flavor)s': %(e)s" %
                           {'flavor': one_flavor, 'e': e})
 
         if result > 0:
@@ -200,7 +200,7 @@ class SetFlavor(command.Command):
                     bc_client.flavor.add_tenant_access(
                         data, parsed_args.project)
             except Exception as e:
-                LOG.error(_("Failed to set flavor access to project: %s"), e)
+                LOG.error("Failed to set flavor access to project: %s", e)
                 result += 1
 
         if result > 0:
@@ -268,8 +268,8 @@ class UnsetFlavor(command.Command):
                     bc_client.flavor.remove_tenant_access(
                         data, parsed_args.project)
             except Exception as e:
-                LOG.error(_("Failed to remove flavor access to project: "
-                            "%s"), e)
+                LOG.error("Failed to remove flavor access to project: "
+                          "%s", e)
                 result += 1
 
         if result > 0:

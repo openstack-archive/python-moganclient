@@ -109,8 +109,8 @@ class DeleteKeyPair(command.Command):
                 bc_client.keypair.delete(one_key, parsed_args.user)
             except Exception as e:
                 result += 1
-                LOG.error(_("Failed to delete keypair with name "
-                            "'%(key)s': %(e)s") %
+                LOG.error("Failed to delete keypair with name "
+                          "'%(key)s': %(e)s",
                           {'key': one_key, 'e': e})
 
         if result > 0:
