@@ -454,12 +454,10 @@ class TestServerShow(test_base.TestBaremetalComputeV1):
         verify_args = [('server', self.fake_server.name)]
         parsed_args = self.check_parser(self.cmd, args, verify_args)
         mock_get.side_effect = [exceptions.NotFound(404),
-                                exceptions.NotFound(404),
                                 self.fake_server]
         mock_list.return_value = [self.fake_server]
         self.cmd.take_action(parsed_args)
         expected = [mock.call('/servers/%s' % self.fake_server.name),
-                    mock.call('/servers/%s' % self.fake_server.name),
                     mock.call('/servers/%s' % self.fake_server.uuid)]
         self.assertEqual(expected, mock_get.call_args_list)
 
