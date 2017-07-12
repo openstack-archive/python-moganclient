@@ -29,7 +29,6 @@ from six.moves.urllib import parse
 
 from moganclient.common import exceptions as exc
 from moganclient.common.i18n import _
-from moganclient.common.i18n import _LW
 from moganclient.common import utils
 
 LOG = logging.getLogger(__name__)
@@ -55,7 +54,7 @@ def get_system_ca_file():
         if os.path.exists(ca):
             LOG.debug("Using ca file %s", ca)
             return ca
-    LOG.warning(_LW("System ca file could not be found."))
+    LOG.warning("System ca file could not be found.")
 
 
 class HTTPClient(object):

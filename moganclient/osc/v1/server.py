@@ -54,8 +54,8 @@ class ServersActionBase(command.Command):
                 method(data.uuid, **kwargs)
             except Exception as e:
                 result += 1
-                LOG.error(_("Failed to %(action)s server with name or UUID "
-                            "'%(server)s': %(e)s") %
+                LOG.error("Failed to %(action)s server with name or UUID "
+                          "'%(server)s': %(e)s",
                           {'action': action, 'server': one_server, 'e': e})
 
         if result > 0:
@@ -253,8 +253,8 @@ class DeleteServer(command.Command):
                 bc_client.server.delete(data.uuid)
             except Exception as e:
                 result += 1
-                LOG.error(_("Failed to delete server with name or UUID "
-                            "'%(server)s': %(e)s") %
+                LOG.error("Failed to delete server with name or UUID "
+                          "'%(server)s': %(e)s",
                           {'server': one_server, 'e': e})
 
         if result > 0:
