@@ -33,11 +33,11 @@ class TestServer(test_base.TestBaremetalComputeV1):
         'availability_zone',
         'created_at',
         'description',
-        'extra',
         'flavor_uuid',
         'image_uuid',
         'links',
         'max_count',
+        'metadata',
         'min_count',
         'name',
         'nics',
@@ -70,7 +70,7 @@ class TestServerCreate(TestServer):
     def _test_create_fake_server(self, mock_create, mock_find,
                                  name, flavor_id, image_id, networks,
                                  description=None,
-                                 availability_zone=None, extra=None):
+                                 availability_zone=None, metadata=None):
         arglist = [
             name,
             '--flavor', flavor_id,
@@ -113,10 +113,10 @@ class TestServerCreate(TestServer):
             arglist.extend(['--availability-zone', availability_zone])
             verifylist.append(('availability_zone', availability_zone))
             called_data['availability_zone'] = availability_zone
-        if extra:
-            arglist.extend(['--property', extra])
-            verifylist.append(('property', {'key1': 'test'}))
-            called_data['extra'] = {'key1': 'test'}
+        if metadata:
+            arglist.extend(['--metadata', metadata])
+            verifylist.append(('metadata', {'key1': 'test'}))
+            called_data['metadata'] = {'key1': 'test'}
 
         flavor_obj = mock.Mock()
         flavor_obj.uuid = flavor_id
@@ -136,11 +136,11 @@ class TestServerCreate(TestServer):
             fk_server.availability_zone,
             fk_server.created_at,
             fk_server.description,
-            fk_server.extra,
             fk_server.flavor_uuid,
             fk_server.image_uuid,
             fk_server.links,
             1,
+            fk_server.metadata,
             1,
             fk_server.name,
             fk_server.nics,
@@ -196,16 +196,16 @@ class TestServerCreate(TestServer):
                                       name, flavor_id, image_id,
                                       networks)
 
-    def test_server_create_with_extra(self, mock_create, mock_find):
+    def test_server_create_with_metadata(self, mock_create, mock_find):
         name = 'server1'
         flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
         image_id = 'image-id-' + uuidutils.generate_uuid(dashed=False)
         networks = [{'net-id': 'net-id-' + uuidutils.generate_uuid(
             dashed=False)}]
-        extra_info = 'key1=test'
+        metadata_info = 'key1=test'
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
-                                      networks, extra=extra_info)
+                                      networks, metadata=metadata_info)
 
 
 @mock.patch.object(utils, 'find_resource')
@@ -232,59 +232,59 @@ class TestServerUpdate(test_base.TestBaremetalComputeV1):
                    'value': 'test_description',
                    'op': 'replace'}])
 
-    def test_server_update_add_extra(self, mock_update, mock_find):
+    def test_server_update_add_metadata(self, mock_update, mock_find):
         mock_find.return_value = self.fake_server
         arglist = [
-            '--add-extra', 'extra_key:extra_value',
+            '--add-metadata', 'metadata_key:metadata_value',
             self.fake_server.uuid]
         verifylist = [
             ('server', self.fake_server.uuid),
-            ('add_extra', [('extra_key', 'extra_value')])]
+            ('add_metadata', [('metadata_key', 'metadata_value')])]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
         mock_update.assert_called_with(
             '/servers/%s' % self.fake_server.uuid,
-            data=[{'path': '/extra/extra_key',
-                   'value': 'extra_value',
+            data=[{'path': '/metadata/metadata_key',
+                   'value': 'metadata_value',
                    'op': 'add'}])
 
-    def test_server_update_add_replace_remove_multi_extra(
+    def test_server_update_add_replace_remove_multi_metadata(
             self, mock_update, mock_find):
         mock_find.return_value = self.fake_server
         arglist = [
-            '--add-extra', 'add_key1:add_value1',
-            '--add-extra', 'add_key2:add_value2',
-            '--replace-extra', 'replace_key1:replace_value1',
-            '--replace-extra', 'replace_key2:replace_value2',
-            '--remove-extra', 'remove_key1',
-            '--remove-extra', 'remove_key2',
+            '--add-metadata', 'add_key1:add_value1',
+            '--add-metadata', 'add_key2:add_value2',
+            '--replace-metadata', 'replace_key1:replace_value1',
+            '--replace-metadata', 'replace_key2:replace_value2',
+            '--remove-metadata', 'remove_key1',
+            '--remove-metadata', 'remove_key2',
             self.fake_server.uuid]
         verifylist = [
             ('server', self.fake_server.uuid),
-            ('add_extra', [('add_key1', 'add_value1'),
-                           ('add_key2', 'add_value2')]),
-            ('replace_extra', [('replace_key1', 'replace_value1'),
-                               ('replace_key2', 'replace_value2')]),
-            ('remove_extra', ['remove_key1', 'remove_key2'])]
+            ('add_metadata', [('add_key1', 'add_value1'),
+                              ('add_key2', 'add_value2')]),
+            ('replace_metadata', [('replace_key1', 'replace_value1'),
+                                  ('replace_key2', 'replace_value2')]),
+            ('remove_metadata', ['remove_key1', 'remove_key2'])]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
         mock_update.assert_called_with(
             '/servers/%s' % self.fake_server.uuid,
-            data=[{'path': '/extra/add_key1',
+            data=[{'path': '/metadata/add_key1',
                    'value': 'add_value1',
                    'op': 'add'},
-                  {'path': '/extra/add_key2',
+                  {'path': '/metadata/add_key2',
                    'value': 'add_value2',
                    'op': 'add'},
-                  {'path': '/extra/replace_key1',
+                  {'path': '/metadata/replace_key1',
                    'value': 'replace_value1',
                    'op': 'replace'},
-                  {'path': '/extra/replace_key2',
+                  {'path': '/metadata/replace_key2',
                    'value': 'replace_value2',
                    'op': 'replace'},
-                  {'path': '/extra/remove_key1',
+                  {'path': '/metadata/remove_key1',
                    'op': 'remove'},
-                  {'path': '/extra/remove_key2',
+                  {'path': '/metadata/remove_key2',
                    'op': 'remove'}])
 
 
@@ -328,7 +328,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             "Image",
             "Flavor",
             "Availability Zone",
-            "Properties"
+            "Metadata"
         )
 
         self.list_data = tuple((

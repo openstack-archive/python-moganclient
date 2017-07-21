@@ -127,10 +127,10 @@ class CreateServer(command.ShowOne):
             help=_('Keypair to inject into this server (optional extension)'),
         )
         parser.add_argument(
-            '--property',
+            '--metadata',
             metavar='<key=value>',
             action=parseractions.KeyValueAction,
-            help=_('Set a property on this server '
+            help=_('Set a metadata on this server '
                    '(repeat option to set multiple values)'),
         )
         parser.add_argument(
@@ -210,7 +210,7 @@ class CreateServer(command.ShowOne):
             userdata=userdata,
             files=files,
             key_name=parsed_args.key_name,
-            extra=parsed_args.property,
+            metadata=parsed_args.metadata,
             min_count=parsed_args.min,
             max_count=parsed_args.max
         )
@@ -307,7 +307,7 @@ class ListServer(command.Lister):
                 "Image",
                 "Flavor",
                 "Availability Zone",
-                'Properties',
+                'Metadata',
             )
             columns = (
                 "uuid",
@@ -318,7 +318,7 @@ class ListServer(command.Lister):
                 "image_uuid",
                 "flavor_uuid",
                 "availability_zone",
-                'extra',
+                'metadata',
             )
         else:
             column_headers = (
@@ -339,7 +339,7 @@ class ListServer(command.Lister):
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
         formatters = {'nics': self._nics_formatter,
-                      'extra': utils.format_dict}
+                      'metadata': utils.format_dict}
         return (column_headers,
                 (utils.get_item_properties(
                     s, columns, formatters=formatters
@@ -400,25 +400,25 @@ class UpdateServer(command.ShowOne):
             help=_("Baremetal server description"),
         )
         parser.add_argument(
-            "--add-extra",
+            "--add-metadata",
             action="append",
             type=self._partition_kv,
-            metavar="<EXTRA_KEY:EXTRA_VALUE>",
-            help="A pair of key:value to be added to the extra "
+            metavar="<METADATA_KEY:METADATA_VALUE>",
+            help="A pair of key:value to be added to the metadata "
                  "field of the server.")
         parser.add_argument(
-            "--replace-extra",
+            "--replace-metadata",
             action="append",
             type=self._partition_kv,
-            metavar="<EXTRA_KEY:EXTRA_VALUE>",
-            help="A pair of key:value to be update to the extra "
+            metavar="<METADATA_KEY:METADATA_VALUE>",
+            help="A pair of key:value to be update to the metadata "
                  "field of the serve.")
         parser.add_argument(
-            "--remove-extra",
+            "--remove-metadata",
             action="append",
-            metavar="<EXTRA_KEY>",
-            help="Delete an item of the field of the server with the key "
-                 "specified.")
+            metavar="<METADATA_KEY>",
+            help="Delete an item of the metadata field of the server with "
+                 "the key specified.")
         return parser
 
     def take_action(self, parsed_args):
@@ -437,18 +437,18 @@ class UpdateServer(command.ShowOne):
             updates.append({"op": "replace",
                             "path": "/name",
                             "value": parsed_args.name})
-        for key, value in parsed_args.add_extra or []:
+        for key, value in parsed_args.add_metadata or []:
             updates.append({"op": "add",
-                            "path": "/extra/%s" % key,
+                            "path": "/metadata/%s" % key,
                             "value": value})
 
-        for key, value in parsed_args.replace_extra or []:
+        for key, value in parsed_args.replace_metadata or []:
             updates.append({"op": "replace",
-                            "path": "/extra/%s" % key,
+                            "path": "/metadata/%s" % key,
                             "value": value})
-        for key in parsed_args.remove_extra or []:
+        for key in parsed_args.remove_metadata or []:
             updates.append({"op": "remove",
-                            "path": "/extra/%s" % key})
+                            "path": "/metadata/%s" % key})
         data = bc_client.server.update(server_id=server.uuid,
                                        updates=updates)
         info = {}
