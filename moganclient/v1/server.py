@@ -29,7 +29,7 @@ class ServerManager(base.ManagerWithFind):
     resource_class = Server
 
     def create(self, name, image_uuid, flavor_uuid, networks,
-               description=None, availability_zone=None, extra=None,
+               description=None, availability_zone=None, metadata=None,
                userdata=None, files=None, key_name=None, min_count=None,
                max_count=None):
         url = '/servers'
@@ -88,8 +88,8 @@ class ServerManager(base.ManagerWithFind):
             data['description'] = description
         if key_name is not None:
             data['key_name'] = key_name
-        if extra is not None:
-            data['extra'] = extra
+        if metadata is not None:
+            data['metadata'] = metadata
         if min_count is not None:
             data['min_count'] = min_count
         if max_count is not None:
