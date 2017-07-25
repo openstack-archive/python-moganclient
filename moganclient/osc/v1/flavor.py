@@ -296,6 +296,21 @@ class UnsetFlavor(command.Command):
             help=_('Remove flavor access from project (name or ID) '
                    '(admin only)'),
         )
+        parser.add_argument(
+            "--resources",
+            metavar="<resources-key>",
+            action="append",
+            help=_("Resources to be removed of this flavor "
+                   "(repeat option to remove multiple resources, admin only)")
+        )
+        parser.add_argument(
+            "--resource-traits",
+            metavar="<resource-traits-key>",
+            action="append",
+            help=_("Resource traits to be removed of this flavor "
+                   "(repeat option to remove multiple resource traits, "
+                   "admin only)")
+        )
         return parser
 
     def take_action(self, parsed_args):
@@ -306,20 +321,19 @@ class UnsetFlavor(command.Command):
             parsed_args.flavor,
         )
 
-        result = 0
+        updates = []
+        for key in parsed_args.resources or []:
+            updates.append({"op": "remove",
+                            "path": "/resources/%s" % key})
+        for key in parsed_args.resource_traits or []:
+            updates.append({"op": "remove",
+                            "path": "/resource_traits/%s" % key})
+        if updates:
+            bc_client.flavor.update(data, updates)
         if parsed_args.project:
-            try:
-                if data.is_public:
-                    msg = _("Cannot remove access for a public flavor")
-                    raise exceptions.CommandError(msg)
-                else:
-                    bc_client.flavor.remove_tenant_access(
-                        data, parsed_args.project)
-            except Exception as e:
-                LOG.error(_("Failed to remove flavor access to project: "
-                            "%s"), e)
-                result += 1
-
-        if result > 0:
-            raise exceptions.CommandError(_("Command Failed: One or more of"
-                                            " the operations failed"))
+            if data.is_public:
+                msg = _("Cannot remove access for a public flavor")
+                raise exceptions.CommandError(msg)
+            else:
+                bc_client.flavor.remove_tenant_access(
+                    data, parsed_args.project)

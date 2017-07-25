@@ -317,3 +317,37 @@ class TestFlavorSet(TestFlavor):
         expected_url += '/access'
         mock_create.assert_called_once_with(
             expected_url, data={'tenant_id': 'fake_project'})
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(flavor_mgr.FlavorManager, '_update')
+class TestFlavorUnset(TestFlavor):
+    def setUp(self):
+        super(TestFlavorUnset, self).setUp()
+        self.cmd = flavor.UnsetFlavor(self.app, None)
+
+    @mock.patch.object(flavor_mgr.FlavorManager, '_delete')
+    def test_flavor_unset(self, mock_delete, mock_update, mock_find):
+        mock_find.return_value = self.fake_flavor
+        arglist = [
+            '--project', 'fake_project',
+            '--resources', 'BAREMETAL_GOLD',
+            '--resource-traits', 'BAREMETAL_GOLD',
+            self.fake_flavor.uuid,
+        ]
+        verifylist = [
+            ('flavor', self.fake_flavor.uuid),
+            ('project', 'fake_project'),
+            ('resource_traits', ['BAREMETAL_GOLD']),
+            ('resources', ['BAREMETAL_GOLD']),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        expected_url = '/flavors/%s' % parsed_args.flavor
+        expected_args = [
+            {'path': '/resources/BAREMETAL_GOLD', 'op': 'remove'},
+            {'path': '/resource_traits/BAREMETAL_GOLD', 'op': 'remove'}
+        ]
+        mock_update.assert_called_once_with(expected_url, expected_args)
+        expected_url += '/access/fake_project'
+        mock_delete.assert_called_once_with(expected_url)
