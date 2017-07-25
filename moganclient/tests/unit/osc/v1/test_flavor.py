@@ -273,3 +273,47 @@ class TestFlavorShow(TestFlavor):
         mock_get.assert_called_once_with(expected_url)
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(flavor_mgr.FlavorManager, '_update')
+class TestFlavorSet(TestFlavor):
+    def setUp(self):
+        super(TestFlavorSet, self).setUp()
+        self.cmd = flavor.SetFlavor(self.app, None)
+
+    @mock.patch.object(flavor_mgr.FlavorManager, '_create')
+    def test_flavor_set(self, mock_create, mock_update, mock_find):
+        mock_find.return_value = self.fake_flavor
+        arglist = [
+            '--project', 'fake_project',
+            '--name', 'new_name',
+            '--disabled', 'false',
+            '--is-public', 'false',
+            '--resources', 'GOLD=1',
+            '--resource-traits', 'GOLD=FPGA',
+            self.fake_flavor.uuid,
+        ]
+        verifylist = [
+            ('flavor', self.fake_flavor.uuid),
+            ('disabled', False),
+            ('is_public', False),
+            ('name', 'new_name'),
+            ('project', 'fake_project'),
+            ('resource_traits', {'GOLD': 'FPGA'}),
+            ('resources', {'GOLD': '1'}),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        expected_url = '/flavors/%s' % parsed_args.flavor
+        expected_args = [
+            {'path': '/name', 'value': 'new_name', 'op': 'replace'},
+            {'path': '/is_public', 'value': False, 'op': 'replace'},
+            {'path': '/disabled', 'value': False, 'op': 'replace'},
+            {'path': '/resources/GOLD', 'value': '1', 'op': 'add'},
+            {'path': '/resource_traits/GOLD', 'value': 'FPGA', 'op': 'add'}
+        ]
+        mock_update.assert_called_once_with(expected_url, expected_args)
+        expected_url += '/access'
+        mock_create.assert_called_once_with(
+            expected_url, data={'tenant_id': 'fake_project'})

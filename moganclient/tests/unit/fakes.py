@@ -171,7 +171,7 @@ class FakeFlavor(object):
             "description": "fake_description",
             "resources": {"BAREMETAL_GOLD": 1},
             "resource_traits": {"BAREMETAL_GOLD": "FPGA"},
-            "is_public": True,
+            "is_public": False,
             "disabled": False,
             "name": "flavor-name-" + uuidutils.generate_uuid(dashed=False),
             "updated_at": None,
