@@ -101,3 +101,13 @@ BaremetalCompute availability zone
 
 .. autoprogram-cliff:: openstack.baremetal_compute.v1
     :command: baremetalcompute availability zone *
+
+==================================
+BaremetalCompute manageable server
+==================================
+
+.. autoprogram-cliff:: openstack.baremetal_compute.v1
+    :command: baremetalcompute manageable server list
+
+.. autoprogram-cliff:: openstack.baremetal_compute.v1
+    :command: baremetalcompute server manage
