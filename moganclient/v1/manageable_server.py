@@ -26,3 +26,17 @@ class ManageableServerManager(base.ManagerWithFind):
     def list(self):
         url = '/manageable_servers'
         return self._list(url, response_key='manageable_servers')
+
+    def manage(self, name, node_uuid, description=None, metadata=None,):
+        url = '/manageable_servers'
+        data = {
+            'name': name,
+            'node_uuid': node_uuid
+        }
+
+        if description is not None:
+            data['description'] = description
+        if metadata is not None:
+            data['metadata'] = metadata
+
+        return self._create(url, data=data)
