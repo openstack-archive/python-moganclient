@@ -458,14 +458,16 @@ class ShowServer(command.ShowOne):
     def _format_image_field(self, data):
         image_client = self.app.client_manager.image
         image_uuid = data._info.pop('image_uuid')
-        image = image_client.images.get(image_uuid)
-        return '%s (%s)' % (image.name, image_uuid)
+        if image_uuid:
+            image = image_client.images.get(image_uuid)
+            return '%s (%s)' % (image.name, image_uuid)
 
     def _format_flavor_field(self, data):
         bc_client = self.app.client_manager.baremetal_compute
         flavor_uuid = data._info.pop('flavor_uuid')
-        flavor = bc_client.flavor.get(flavor_uuid)
-        return '%s (%s)' % (flavor.name, flavor_uuid)
+        if flavor_uuid:
+            flavor = bc_client.flavor.get(flavor_uuid)
+            return '%s (%s)' % (flavor.name, flavor_uuid)
 
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
