@@ -107,4 +107,7 @@ BaremetalCompute manageable server
 ==================================
 
 .. autoprogram-cliff:: openstack.baremetal_compute.v1
-    :command: baremetalcompute manageable server *
+    :command: baremetalcompute manageable server list
+
+.. autoprogram-cliff:: openstack.baremetal_compute.v1
+    :command: baremetalcompute server manage
