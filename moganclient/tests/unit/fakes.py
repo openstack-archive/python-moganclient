@@ -23,6 +23,7 @@ from requests import Response
 from moganclient.common import base
 from moganclient.v1 import availability_zone
 from moganclient.v1 import flavor
+from moganclient.v1 import node
 from moganclient.v1 import server
 
 
@@ -65,6 +66,7 @@ class FakeBaremetalComputeV1Client(object):
         self.server = server.ServerManager(self.fake_http_client)
         self.availability_zone = availability_zone.AvailabilityZoneManager(
             self.fake_http_client)
+        self.node = node.NodeManager(self.fake_http_client)
 
 
 class FakeHTTPClient(object):

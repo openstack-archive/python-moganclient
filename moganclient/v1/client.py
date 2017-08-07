@@ -17,6 +17,7 @@ from moganclient.common import http
 from moganclient.v1 import availability_zone
 from moganclient.v1 import flavor
 from moganclient.v1 import keypair
+from moganclient.v1 import node
 from moganclient.v1 import server
 
 
@@ -33,3 +34,4 @@ class Client(object):
         self.availability_zone = availability_zone.AvailabilityZoneManager(
             self.http_client)
         self.keypair = keypair.KeyPairManager(self.http_client)
+        self.node = node.NodeManager(self.http_client)
