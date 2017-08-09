@@ -21,6 +21,7 @@ from oslo_utils import uuidutils
 from requests import Response
 
 from moganclient.common import base
+from moganclient.v1 import aggregate
 from moganclient.v1 import availability_zone
 from moganclient.v1 import flavor
 from moganclient.v1 import server
@@ -65,6 +66,7 @@ class FakeBaremetalComputeV1Client(object):
         self.server = server.ServerManager(self.fake_http_client)
         self.availability_zone = availability_zone.AvailabilityZoneManager(
             self.fake_http_client)
+        self.aggregate = aggregate.AggregateManager(self.fake_http_client)
 
 
 class FakeHTTPClient(object):
@@ -321,3 +323,74 @@ class FakeServer(object):
         if servers is None:
             servers = FakeServer.create_servers(count)
         return mock.Mock(side_effect=servers)
+
+
+class FakeAggregate(object):
+    """Fake one baremetal node aggregate."""
+
+    @staticmethod
+    def create_one_aggregate(attrs=None):
+        """Create a fake baremetal aggregate.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with uuid and other attributes
+        """
+        attrs = attrs or {}
+
+        # Set default attribute
+        agg_info = {
+            "created_at": "2016-09-27T02:37:21.966342+00:00",
+            "metadata": {"key1": "value1"},
+            "links": [],
+            "name": "agg-name-" + uuidutils.generate_uuid(dashed=False),
+            "updated_at": None,
+            "uuid": "agg-id-" + uuidutils.generate_uuid(dashed=False),
+        }
+
+        # Overwrite default attributes.
+        agg_info.update(attrs)
+
+        agg = FakeResource(
+            manager=None,
+            info=copy.deepcopy(agg_info),
+            loaded=True)
+        return agg
+
+    @staticmethod
+    def create_aggregates(attrs=None, count=2):
+        """Create multiple fake baremetal node aggregates.
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :param int count:
+            The number of aggregates to fake
+        :return:
+            A list of FakeResource objects faking the aggregates
+        """
+        aggs = []
+        for i in range(0, count):
+            aggs.append(
+                FakeAggregate.create_one_aggregate(attrs))
+
+        return aggs
+
+    @staticmethod
+    def get_aggregates(aggregates=None, count=2):
+        """Get an iterable Mock object with a list of faked aggregates.
+
+        If aggregates list is provided, then initialize the Mock object
+        with the list. Otherwise create one.
+
+        :param List aggregates:
+            A list of FakeResource objects faking aggregates
+        :param int count:
+            The number of aggregates to fake
+        :return:
+            An iterable Mock object with side_effect set to a list of faked
+            baremetal aggregates
+        """
+        if aggregates is None:
+            aggregates = FakeAggregate.create_aggregates(count)
+        return mock.Mock(side_effect=aggregates)
