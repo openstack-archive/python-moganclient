@@ -14,6 +14,7 @@
 #
 
 from moganclient.common import http
+from moganclient.v1 import aggregate
 from moganclient.v1 import availability_zone
 from moganclient.v1 import flavor
 from moganclient.v1 import keypair
@@ -35,3 +36,4 @@ class Client(object):
             self.http_client)
         self.keypair = keypair.KeyPairManager(self.http_client)
         self.node = node.NodeManager(self.http_client)
+        self.aggregate = aggregate.AggregateManager(self.http_client)
