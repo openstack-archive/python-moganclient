@@ -37,3 +37,4 @@ class Client(object):
         self.keypair = keypair.KeyPairManager(self.http_client)
         self.node = node.NodeManager(self.http_client)
         self.aggregate = aggregate.AggregateManager(self.http_client)
+        self.aggregate_node = aggregate.AggregateNodeManager(self.http_client)
