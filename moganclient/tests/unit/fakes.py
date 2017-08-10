@@ -67,6 +67,8 @@ class FakeBaremetalComputeV1Client(object):
         self.availability_zone = availability_zone.AvailabilityZoneManager(
             self.fake_http_client)
         self.aggregate = aggregate.AggregateManager(self.fake_http_client)
+        self.aggregate_node = aggregate.AggregateNodeManager(
+            self.fake_http_client)
 
 
 class FakeHTTPClient(object):
