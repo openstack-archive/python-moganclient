@@ -72,6 +72,8 @@ class FakeBaremetalComputeV1Client(object):
         self.aggregate = aggregate.AggregateManager(self.fake_http_client)
         self.server_group = server_group.ServerGroupManager(
             self.fake_http_client)
+        self.aggregate_node = aggregate.AggregateNodeManager(
+            self.fake_http_client)
 
 
 class FakeHTTPClient(object):

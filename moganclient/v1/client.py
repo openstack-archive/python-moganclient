@@ -39,3 +39,4 @@ class Client(object):
         self.node = node.NodeManager(self.http_client)
         self.aggregate = aggregate.AggregateManager(self.http_client)
         self.server_group = server_group.ServerGroupManager(self.http_client)
+        self.aggregate_node = aggregate.AggregateNodeManager(self.http_client)

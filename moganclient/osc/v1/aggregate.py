@@ -226,3 +226,81 @@ class UnsetAggregate(command.Command):
                             "path": "/metadata/%s" % key})
         if updates:
             bc_client.aggregate.update(aggregate, updates)
+
+
+class AggregateAddNode(command.Command):
+    """Add a node for a specified node aggregate"""
+
+    def get_parser(self, prog_name):
+        parser = super(AggregateAddNode, self).get_parser(prog_name)
+        parser.add_argument(
+            "aggregate",
+            metavar="<aggregate>",
+            help=_("Aggregate to add nodes (name or UUID)")
+        )
+        parser.add_argument(
+            "node",
+            metavar="<node>",
+            help=_("Name of baremetal node")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        aggregate = utils.find_resource(
+            bc_client.aggregate,
+            parsed_args.aggregate,
+        )
+        bc_client.aggregate_node.add_node(aggregate.uuid,
+                                          parsed_args.node)
+
+
+class AggregateListNode(command.Lister):
+    """List all baremetal nodes names of a specified node aggregate"""
+
+    def get_parser(self, prog_name):
+        parser = super(AggregateListNode, self).get_parser(prog_name)
+        parser.add_argument(
+            "aggregate",
+            metavar="<aggregate>",
+            help=_("Aggregate to list its nodes (name or UUID)")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        aggregate = utils.find_resource(
+            bc_client.aggregate,
+            parsed_args.aggregate,
+        )
+        data = bc_client.aggregate_node.list_node(aggregate.uuid)
+
+        return (('Node',),
+                tuple((d,) for d in data))
+
+
+class AggregateRemoveNode(command.Command):
+    """Remove a node for a specified node aggregate"""
+
+    def get_parser(self, prog_name):
+        parser = super(AggregateRemoveNode, self).get_parser(prog_name)
+        parser.add_argument(
+            "aggregate",
+            metavar="<aggregate>",
+            help=_("Aggregate to delete its node (name or UUID)")
+        )
+        parser.add_argument(
+            "node",
+            metavar="<node>",
+            help=_("Name of baremetal node")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        aggregate = utils.find_resource(
+            bc_client.aggregate,
+            parsed_args.aggregate,
+        )
+        bc_client.aggregate_node.remove_node(aggregate.uuid,
+                                             parsed_args.node)

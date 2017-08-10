@@ -45,3 +45,24 @@ class AggregateManager(base.ManagerWithFind):
     def update(self, aggregate, updates):
         url = '/aggregates/%s' % base.getid(aggregate)
         return self._update(url, data=updates)
+
+
+class AggregateNode(base.Resource):
+    pass
+
+
+class AggregateNodeManager(base.Manager):
+    resource_class = AggregateNode
+
+    def add_node(self, aggregate_uuid, node):
+        url = '/aggregates/%s/nodes' % aggregate_uuid
+        data = {'node': node}
+        return self._create(url, data=data)
+
+    def list_node(self, aggregate_uuid):
+        url = '/aggregates/%s/nodes' % aggregate_uuid
+        return self._list(url, response_key='nodes')
+
+    def remove_node(self, aggregate_uuid, node):
+        url = '/aggregates/%s/nodes/%s' % (aggregate_uuid, node)
+        return self._delete(url)
