@@ -222,3 +222,72 @@ class TestAggregateUnset(TestAggregateBase):
         ]
         mock_update.assert_called_once_with(expected_url,
                                             data=expected_args)
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(aggregate_mgr.AggregateNodeManager, '_list')
+class TestAggregateListNode(TestAggregateBase):
+    def setUp(self):
+        super(TestAggregateListNode, self).setUp()
+        self.cmd = aggregate.AggregateListNode(self.app, None)
+        self.fake_nodes = ("node-1", "node-1", "node-1")
+
+    def test_agg_node_list(self, mock_list, mock_find):
+        mock_find.return_value = self.fake_agg
+        arglist = [
+            self.fake_agg.uuid,
+        ]
+        verifylist = [
+            ('aggregate', self.fake_agg.uuid),
+        ]
+        mock_list.return_value = [self.fake_nodes]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        url = '/aggregates/%s/nodes' % self.fake_agg.uuid
+        mock_list.assert_called_once_with(url, response_key='nodes')
+        self.assertEqual(('Node',), columns)
+        self.assertEqual(((("node-1", "node-1", "node-1"),),), data)
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(aggregate_mgr.AggregateNodeManager, '_create')
+class TestAggregateAddNode(TestAggregateBase):
+    def setUp(self):
+        super(TestAggregateAddNode, self).setUp()
+        self.cmd = aggregate.AggregateAddNode(self.app, None)
+
+    def test_agg_node_add(self, mock_create, mock_find):
+        mock_find.return_value = self.fake_agg
+        arglist = [
+            self.fake_agg.uuid, 'node-1',
+        ]
+        verifylist = [
+            ('aggregate', self.fake_agg.uuid),
+            ('node', 'node-1'),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        url = '/aggregates/%s/nodes' % self.fake_agg.uuid
+        mock_create.assert_called_once_with(url, data={'node': 'node-1'})
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(aggregate_mgr.AggregateNodeManager, '_delete')
+class TestAggregateRemoveNode(TestAggregateBase):
+    def setUp(self):
+        super(TestAggregateRemoveNode, self).setUp()
+        self.cmd = aggregate.AggregateRemoveNode(self.app, None)
+
+    def test_agg_node_remove(self, mock_delete, mock_find):
+        mock_find.return_value = self.fake_agg
+        arglist = [
+            self.fake_agg.uuid, 'node-1',
+        ]
+        verifylist = [
+            ('aggregate', self.fake_agg.uuid),
+            ('node', 'node-1'),
+        ]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        self.cmd.take_action(parsed_args)
+        url = '/aggregates/%s/nodes/node-1' % self.fake_agg.uuid
+        mock_delete.assert_called_once_with(url)
