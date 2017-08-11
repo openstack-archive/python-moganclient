@@ -257,21 +257,10 @@ class UnsetFlavor(command.Command):
             bc_client.flavor,
             parsed_args.flavor,
         )
-
-        result = 0
         if parsed_args.project:
-            try:
-                if data.is_public:
-                    msg = _("Cannot remove access for a public flavor")
-                    raise exceptions.CommandError(msg)
-                else:
-                    bc_client.flavor.remove_tenant_access(
-                        data, parsed_args.project)
-            except Exception as e:
-                LOG.error(_("Failed to remove flavor access to project: "
-                            "%s"), e)
-                result += 1
-
-        if result > 0:
-            raise exceptions.CommandError(_("Command Failed: One or more of"
-                                            " the operations failed"))
+            if data.is_public:
+                msg = _("Cannot remove access for a public flavor")
+                raise exceptions.CommandError(msg)
+            else:
+                bc_client.flavor.remove_tenant_access(
+                    data, parsed_args.project)
