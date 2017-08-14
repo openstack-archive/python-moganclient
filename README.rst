@@ -9,7 +9,7 @@ Please fill here a long description which must be at least 3 lines wrapped on
 Note that this is a hard requirement.
 
 * Free software: Apache license
-* Documentation: http://docs.openstack.org/developer/python-moganclient
+* Documentation: http://python-moganclient.readthedocs.io/
 * Source: http://git.openstack.org/cgit/openstack/python-moganclient
 * Bugs: http://bugs.launchpad.net/python-moganclient
 
