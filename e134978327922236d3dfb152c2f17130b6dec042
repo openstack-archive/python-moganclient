@@ -1,0 +1,11 @@
+Code-Review+1: Ngo Quoc Cuong <cuongngo.ict@gmail.com>
+Code-Review+1: Tao Li <litao3721@126.com>
+Code-Review+2: Zhenguo Niu <Niu.ZGlinux@gmail.com>
+Code-Review+2: ShaoHe Feng <shaohe.feng@intel.com>
+Workflow+1: ShaoHe Feng <shaohe.feng@intel.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 15 Aug 2017 03:32:30 +0000
+Reviewed-on: https://review.openstack.org/482825
+Project: openstack/python-moganclient
+Branch: refs/heads/master
