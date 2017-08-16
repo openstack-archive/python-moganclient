@@ -396,3 +396,38 @@ class FakeAggregate(object):
         if aggregates is None:
             aggregates = FakeAggregate.create_aggregates(count)
         return mock.Mock(side_effect=aggregates)
+
+
+class FakeServerGroup(object):
+    """Fake one baremetal server group"""
+
+    @staticmethod
+    def create_one_server_group(attrs=None):
+        """Create a fake baremetal server group
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with id and other attributes
+        """
+        if attrs is None:
+            attrs = {}
+
+        # Set default attributes.
+        server_group_info = {
+            'id': 'sg-id-' + uuidutils.generate_uuid(dashed=False),
+            'members': [],
+            'name': 'sg-name-' + uuidutils.generate_uuid(dashed=False),
+            'policies': [],
+            'project_id': 'project-' + uuidutils.generate_uuid(dashed=False),
+            'user_id': 'user-' + uuidutils.generate_uuid(dashed=False),
+        }
+
+        # Overwrite default attributes.
+        server_group_info.update(attrs)
+
+        server_group = FakeResource(
+            manager=None,
+            info=copy.deepcopy(server_group_info),
+            loaded=True)
+        return server_group
