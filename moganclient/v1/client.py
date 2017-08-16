@@ -20,6 +20,7 @@ from moganclient.v1 import flavor
 from moganclient.v1 import keypair
 from moganclient.v1 import node
 from moganclient.v1 import server
+from moganclient.v1 import server_group
 
 
 class Client(object):
@@ -37,3 +38,4 @@ class Client(object):
         self.keypair = keypair.KeyPairManager(self.http_client)
         self.node = node.NodeManager(self.http_client)
         self.aggregate = aggregate.AggregateManager(self.http_client)
+        self.server_group = server_group.ServerGroupManager(self.http_client)

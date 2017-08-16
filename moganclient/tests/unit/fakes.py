@@ -26,6 +26,7 @@ from moganclient.v1 import availability_zone
 from moganclient.v1 import flavor
 from moganclient.v1 import node
 from moganclient.v1 import server
+from moganclient.v1 import server_group
 
 
 # fake request id
@@ -69,6 +70,8 @@ class FakeBaremetalComputeV1Client(object):
             self.fake_http_client)
         self.node = node.NodeManager(self.fake_http_client)
         self.aggregate = aggregate.AggregateManager(self.fake_http_client)
+        self.server_group = server_group.ServerGroupManager(
+            self.fake_http_client)
 
 
 class FakeHTTPClient(object):
@@ -396,3 +399,38 @@ class FakeAggregate(object):
         if aggregates is None:
             aggregates = FakeAggregate.create_aggregates(count)
         return mock.Mock(side_effect=aggregates)
+
+
+class FakeServerGroup(object):
+    """Fake one baremetal server group"""
+
+    @staticmethod
+    def create_one_server_group(attrs=None):
+        """Create a fake baremetal server group
+
+        :param Dictionary attrs:
+            A dictionary with all attributes
+        :return:
+            A FakeResource object, with id and other attributes
+        """
+        if attrs is None:
+            attrs = {}
+
+        # Set default attributes.
+        server_group_info = {
+            'uuid': 'sg-id-' + uuidutils.generate_uuid(dashed=False),
+            'members': [],
+            'name': 'sg-name-' + uuidutils.generate_uuid(dashed=False),
+            'policies': [],
+            'project_id': 'project-' + uuidutils.generate_uuid(dashed=False),
+            'user_id': 'user-' + uuidutils.generate_uuid(dashed=False),
+        }
+
+        # Overwrite default attributes.
+        server_group_info.update(attrs)
+
+        server_group = FakeResource(
+            manager=None,
+            info=copy.deepcopy(server_group_info),
+            loaded=True)
+        return server_group
