@@ -210,7 +210,7 @@ class CreateServer(command.ShowOne):
             userdata=userdata,
             files=files,
             key_name=parsed_args.key_name,
-            extra=parsed_args.property,
+            metadata=parsed_args.property,
             min_count=parsed_args.min,
             max_count=parsed_args.max
         )
@@ -224,7 +224,13 @@ class CreateServer(command.ShowOne):
                     f.close()
             if hasattr(userdata, 'close'):
                 userdata.close()
-
+        # Special mapping for columns to make the output easier to read:
+        # 'metadata' --> 'properties'
+        data._info.update(
+            {
+                'properties': utils.format_dict(data._info.pop('metadata')),
+            },
+        )
         info = {}
         info.update(data._info)
         return zip(*sorted(info.items()))
@@ -318,7 +324,7 @@ class ListServer(command.Lister):
                 "image_uuid",
                 "flavor_uuid",
                 "availability_zone",
-                'extra',
+                'metadata',
             )
         else:
             column_headers = (
@@ -339,7 +345,7 @@ class ListServer(command.Lister):
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
         formatters = {'nics': self._nics_formatter,
-                      'extra': utils.format_dict}
+                      'metadata': utils.format_dict}
         return (column_headers,
                 (utils.get_item_properties(
                     s, columns, formatters=formatters
@@ -364,26 +370,24 @@ class ShowServer(command.ShowOne):
             bc_client.server,
             parsed_args.server,
         )
+        # Special mapping for columns to make the output easier to read:
+        # 'metadata' --> 'properties'
+        data._info.update(
+            {
+                'properties': utils.format_dict(data._info.pop('metadata')),
+            },
+        )
 
         info = {}
         info.update(data._info)
         return zip(*sorted(info.items()))
 
 
-class UpdateServer(command.ShowOne):
-    """Update a baremetal server"""
-
-    @staticmethod
-    def _partition_kv(kv_arg):
-        if ':' not in kv_arg:
-            msg = _("Input %s should be a pair of key/value combined "
-                    "by ':'")
-            raise exceptions.CommandError(msg)
-        kv = kv_arg.partition(":")
-        return kv[0], kv[2]
+class SetServer(command.Command):
+    """Set properties for a baremetal server"""
 
     def get_parser(self, prog_name):
-        parser = super(UpdateServer, self).get_parser(prog_name)
+        parser = super(SetServer, self).get_parser(prog_name)
         parser.add_argument(
             'server',
             metavar='<server>',
@@ -400,29 +404,15 @@ class UpdateServer(command.ShowOne):
             help=_("Baremetal server description"),
         )
         parser.add_argument(
-            "--add-extra",
-            action="append",
-            type=self._partition_kv,
-            metavar="<EXTRA_KEY:EXTRA_VALUE>",
-            help="A pair of key:value to be added to the extra "
-                 "field of the server.")
-        parser.add_argument(
-            "--replace-extra",
-            action="append",
-            type=self._partition_kv,
-            metavar="<EXTRA_KEY:EXTRA_VALUE>",
-            help="A pair of key:value to be update to the extra "
-                 "field of the serve.")
-        parser.add_argument(
-            "--remove-extra",
-            action="append",
-            metavar="<EXTRA_KEY>",
-            help="Delete an item of the field of the server with the key "
-                 "specified.")
+            "--property",
+            metavar="<key=value>",
+            action=parseractions.KeyValueAction,
+            help=_("Property to set on this server "
+                   "(repeat option to set multiple properties)")
+        )
         return parser
 
     def take_action(self, parsed_args):
-
         bc_client = self.app.client_manager.baremetal_compute
         server = utils.find_resource(
             bc_client.server,
@@ -437,23 +427,45 @@ class UpdateServer(command.ShowOne):
             updates.append({"op": "replace",
                             "path": "/name",
                             "value": parsed_args.name})
-        for key, value in parsed_args.add_extra or []:
+        for key, value in (parsed_args.property or {}).items():
             updates.append({"op": "add",
-                            "path": "/extra/%s" % key,
+                            "path": "/metadata/%s" % key,
                             "value": value})
+        if updates:
+            bc_client.server.update(server.uuid, updates)
 
-        for key, value in parsed_args.replace_extra or []:
-            updates.append({"op": "replace",
-                            "path": "/extra/%s" % key,
-                            "value": value})
-        for key in parsed_args.remove_extra or []:
+
+class UnsetServer(command.Command):
+    """Unset properties for a baremetal server"""
+
+    def get_parser(self, prog_name):
+        parser = super(UnsetServer, self).get_parser(prog_name)
+        parser.add_argument(
+            'server',
+            metavar='<server>',
+            help=_("Baremetal server to unset its properties (name or UUID)")
+        )
+        parser.add_argument(
+            "--property",
+            metavar="<key>",
+            action='append',
+            help=_("Property to remove from this server "
+                   "(repeat option to remove multiple properties)")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
+        )
+        updates = []
+        for key in parsed_args.property or []:
             updates.append({"op": "remove",
-                            "path": "/extra/%s" % key})
-        data = bc_client.server.update(server_id=server.uuid,
-                                       updates=updates)
-        info = {}
-        info.update(data._info)
-        return zip(*sorted(info.items()))
+                            "path": "/metadata/%s" % key})
+        if updates:
+            bc_client.server.update(server.uuid, updates)
 
 
 class StartServer(ServersActionBase):

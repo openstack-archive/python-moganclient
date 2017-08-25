@@ -33,7 +33,6 @@ class TestServer(test_base.TestBaremetalComputeV1):
         'availability_zone',
         'created_at',
         'description',
-        'extra',
         'flavor_uuid',
         'image_uuid',
         'links',
@@ -41,6 +40,7 @@ class TestServer(test_base.TestBaremetalComputeV1):
         'min_count',
         'name',
         'nics',
+        'properties',
         'updated_at',
         'uuid')
 
@@ -70,7 +70,7 @@ class TestServerCreate(TestServer):
     def _test_create_fake_server(self, mock_create, mock_find,
                                  name, flavor_id, image_id, networks,
                                  description=None,
-                                 availability_zone=None, extra=None):
+                                 availability_zone=None, properties=None):
         arglist = [
             name,
             '--flavor', flavor_id,
@@ -113,10 +113,10 @@ class TestServerCreate(TestServer):
             arglist.extend(['--availability-zone', availability_zone])
             verifylist.append(('availability_zone', availability_zone))
             called_data['availability_zone'] = availability_zone
-        if extra:
-            arglist.extend(['--property', extra])
+        if properties:
+            arglist.extend(['--property', properties])
             verifylist.append(('property', {'key1': 'test'}))
-            called_data['extra'] = {'key1': 'test'}
+            called_data['metadata'] = {'key1': 'test'}
 
         flavor_obj = mock.Mock()
         flavor_obj.uuid = flavor_id
@@ -136,7 +136,6 @@ class TestServerCreate(TestServer):
             fk_server.availability_zone,
             fk_server.created_at,
             fk_server.description,
-            fk_server.extra,
             fk_server.flavor_uuid,
             fk_server.image_uuid,
             fk_server.links,
@@ -144,6 +143,7 @@ class TestServerCreate(TestServer):
             1,
             fk_server.name,
             fk_server.nics,
+            utils.format_dict(fk_server.metadata),
             fk_server.updated_at,
             fk_server.uuid)
         self.assertEqual(expected_data, data)
@@ -196,96 +196,75 @@ class TestServerCreate(TestServer):
                                       name, flavor_id, image_id,
                                       networks)
 
-    def test_server_create_with_extra(self, mock_create, mock_find):
+    def test_server_create_with_metadata(self, mock_create, mock_find):
         name = 'server1'
         flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
         image_id = 'image-id-' + uuidutils.generate_uuid(dashed=False)
         networks = [{'net-id': 'net-id-' + uuidutils.generate_uuid(
             dashed=False)}]
-        extra_info = 'key1=test'
+        properties = 'key1=test'
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
-                                      networks, extra=extra_info)
+                                      networks, properties=properties)
 
 
 @mock.patch.object(utils, 'find_resource')
 @mock.patch.object(server_mgr.ServerManager, '_update')
-class TestServerUpdate(test_base.TestBaremetalComputeV1):
+class TestServerSet(test_base.TestBaremetalComputeV1):
     def setUp(self):
-        super(TestServerUpdate, self).setUp()
-        self.cmd = server.UpdateServer(self.app, None)
+        super(TestServerSet, self).setUp()
+        self.cmd = server.SetServer(self.app, None)
         self.fake_server = fakes.FakeServer.create_one_server()
 
-    def test_server_update_description(self, mock_update, mock_find):
+    def test_server_set(self, mock_update, mock_find):
         mock_find.return_value = self.fake_server
         arglist = [
-            '--description', 'test_description',
-            self.fake_server.uuid]
+            '--name', 'test_server',
+            '--property', 'k1=v1',
+            self.fake_server.uuid,
+        ]
         verifylist = [
             ('server', self.fake_server.uuid),
-            ('description', 'test_description')]
+            ('name', 'test_server'),
+            ('property', {'k1': 'v1'}),
+        ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
-        mock_update.assert_called_with(
-            '/servers/%s' % self.fake_server.uuid,
-            data=[{'path': '/description',
-                   'value': 'test_description',
-                   'op': 'replace'}])
+        expected_url = '/servers/%s' % self.fake_server.uuid
+        expected_args = [
+            {'path': '/name', 'value': 'test_server', 'op': 'replace'},
+            {'path': '/metadata/k1', 'value': 'v1', 'op': 'add'},
+        ]
+        mock_update.assert_called_once_with(expected_url,
+                                            data=expected_args)
 
-    def test_server_update_add_extra(self, mock_update, mock_find):
-        mock_find.return_value = self.fake_server
-        arglist = [
-            '--add-extra', 'extra_key:extra_value',
-            self.fake_server.uuid]
-        verifylist = [
-            ('server', self.fake_server.uuid),
-            ('add_extra', [('extra_key', 'extra_value')])]
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        self.cmd.take_action(parsed_args)
-        mock_update.assert_called_with(
-            '/servers/%s' % self.fake_server.uuid,
-            data=[{'path': '/extra/extra_key',
-                   'value': 'extra_value',
-                   'op': 'add'}])
 
-    def test_server_update_add_replace_remove_multi_extra(
-            self, mock_update, mock_find):
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(server_mgr.ServerManager, '_update')
+class TestServerUnset(test_base.TestBaremetalComputeV1):
+    def setUp(self):
+        super(TestServerUnset, self).setUp()
+        self.cmd = server.UnsetServer(self.app, None)
+        self.fake_server = fakes.FakeServer.create_one_server()
+
+    def test_server_unset(self, mock_update, mock_find):
         mock_find.return_value = self.fake_server
         arglist = [
-            '--add-extra', 'add_key1:add_value1',
-            '--add-extra', 'add_key2:add_value2',
-            '--replace-extra', 'replace_key1:replace_value1',
-            '--replace-extra', 'replace_key2:replace_value2',
-            '--remove-extra', 'remove_key1',
-            '--remove-extra', 'remove_key2',
-            self.fake_server.uuid]
+            '--property', 'key1',
+            self.fake_server.uuid,
+        ]
         verifylist = [
             ('server', self.fake_server.uuid),
-            ('add_extra', [('add_key1', 'add_value1'),
-                           ('add_key2', 'add_value2')]),
-            ('replace_extra', [('replace_key1', 'replace_value1'),
-                               ('replace_key2', 'replace_value2')]),
-            ('remove_extra', ['remove_key1', 'remove_key2'])]
+            ('property', ['key1']),
+        ]
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         self.cmd.take_action(parsed_args)
-        mock_update.assert_called_with(
-            '/servers/%s' % self.fake_server.uuid,
-            data=[{'path': '/extra/add_key1',
-                   'value': 'add_value1',
-                   'op': 'add'},
-                  {'path': '/extra/add_key2',
-                   'value': 'add_value2',
-                   'op': 'add'},
-                  {'path': '/extra/replace_key1',
-                   'value': 'replace_value1',
-                   'op': 'replace'},
-                  {'path': '/extra/replace_key2',
-                   'value': 'replace_value2',
-                   'op': 'replace'},
-                  {'path': '/extra/remove_key1',
-                   'op': 'remove'},
-                  {'path': '/extra/remove_key2',
-                   'op': 'remove'}])
+        expected_url = '/servers/%s' % self.fake_server.uuid
+        expected_args = [
+            {'path': '/metadata/key1', 'op': 'remove'}
+        ]
+        mock_update.assert_called_once_with(expected_url,
+                                            data=expected_args)
 
 
 @mock.patch.object(server_mgr.ServerManager, '_list')
