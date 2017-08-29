@@ -31,6 +31,21 @@ from moganclient.common.i18n import _
 LOG = logging.getLogger(__name__)
 
 
+def _addresses_formatter(network_client, networks):
+    output = []
+    for (network, addresses) in networks.items():
+        if not addresses:
+            continue
+        addrs = [addr['addr'] for addr in addresses]
+        network_data = network_client.find_network(
+            network, ignore_missing=False)
+        net_ident = network_data.name or network_data.id
+        addresses_csv = ', '.join(addrs)
+        group = "%s=%s" % (net_ident, addresses_csv)
+        output.append(group)
+    return '; '.join(output)
+
+
 class ServersActionBase(command.Command):
     def _get_parser_with_action(self, prog_name, action):
         parser = super(ServersActionBase, self).get_parser(prog_name)
@@ -296,15 +311,20 @@ class ListServer(command.Lister):
         )
         return parser
 
-    @staticmethod
-    def _nics_formatter(nics):
-        return_info = []
-        for nics in nics:
-            port_ips = []
-            for fixed_ip in nics['fixed_ips']:
-                port_ips.append(fixed_ip['ip_address'])
-            return_info.append(', '.join(port_ips))
-        return '; '.join(return_info)
+    def _addresses_formatter(self, networks):
+        output = []
+        network_client = self.app.client_manager.network
+        for (network, addresses) in networks.items():
+            if not addresses:
+                continue
+            addrs = [addr['addr'] for addr in addresses]
+            network_data = network_client.find_network(
+                network, ignore_missing=False)
+            net_ident = network_data.name or network_data.id
+            addresses_csv = ', '.join(addrs)
+            group = "%s=%s" % (net_ident, addresses_csv)
+            output.append(group)
+        return '; '.join(output)
 
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
@@ -327,7 +347,7 @@ class ListServer(command.Lister):
                 "name",
                 "status",
                 "power_state",
-                "nics",
+                "addresses",
                 "image_uuid",
                 "flavor_uuid",
                 "availability_zone",
@@ -345,13 +365,14 @@ class ListServer(command.Lister):
                 "uuid",
                 "name",
                 "status",
-                "nics",
+                "addresses",
                 "image_uuid",
             )
 
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
-        formatters = {'nics': self._nics_formatter,
+
+        formatters = {'addresses': self._addresses_formatter,
                       'metadata': utils.format_dict}
         return (column_headers,
                 (utils.get_item_properties(
@@ -379,9 +400,13 @@ class ShowServer(command.ShowOne):
         )
         # Special mapping for columns to make the output easier to read:
         # 'metadata' --> 'properties'
+        network_client = self.app.client_manager.network
         data._info.update(
             {
                 'properties': utils.format_dict(data._info.pop('metadata')),
+                'addresses': _addresses_formatter(
+                    network_client,
+                    data._info.pop('addresses')),
             },
         )
 
