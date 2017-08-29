@@ -277,6 +277,11 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         self.app.client_manager.network = mock.Mock()
         self.app.client_manager.network.find_network = \
             mock.Mock(return_value=network_obj)
+        mocked_img = mock.Mock()
+        mocked_img.name = 'test-img'
+        image_mock = mock.MagicMock()
+        image_mock.images.get.return_value = mocked_img
+        self.app.client_manager.image = image_mock
         fake_return_net = {
             "private": [
                 {
@@ -298,7 +303,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             "Name",
             "Status",
             'Networks',
-            'Image'
+            'Image Name'
         )
 
         self.list_columns_long = (
@@ -307,7 +312,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             "Status",
             "Power State",
             "Networks",
-            "Image",
+            "Image Name",
             "Flavor",
             "Availability Zone",
             "Properties"
@@ -318,7 +323,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             self.fake_servers[i].name,
             self.fake_servers[i].status,
             'private=172.24.4.4, 2001:db8::a',
-            self.fake_servers[i].image_uuid,
+            'test-img',
             ) for i in range(3))
 
         self.list_data_long = tuple((
@@ -327,7 +332,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             self.fake_servers[i].status,
             self.fake_servers[i].power_state,
             'private=172.24.4.4, 2001:db8::a',
-            self.fake_servers[i].image_uuid,
+            'test-img',
             self.fake_servers[i].flavor_uuid,
             self.fake_servers[i].availability_zone,
             '',
