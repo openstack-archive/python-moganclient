@@ -31,6 +31,23 @@ from moganclient.common.i18n import _
 LOG = logging.getLogger(__name__)
 
 
+def _format_servers_list_networks(networks):
+    """Return a formatted string of a server's addresses
+
+    :param networks: a Server.addresses field
+    :rtype: a string of formatted network addresses
+    """
+    output = []
+    for (network, addresses) in networks.items():
+        if not addresses:
+            continue
+        addrs = [addr['addr'] for addr in addresses]
+        addresses_csv = ', '.join(addrs)
+        group = "%s=%s" % (network, addresses_csv)
+        output.append(group)
+    return '; '.join(output)
+
+
 class ServersActionBase(command.Command):
     def _get_parser_with_action(self, prog_name, action):
         parser = super(ServersActionBase, self).get_parser(prog_name)
@@ -289,16 +306,6 @@ class ListServer(command.Lister):
         )
         return parser
 
-    @staticmethod
-    def _nics_formatter(nics):
-        return_info = []
-        for nics in nics:
-            port_ips = []
-            for fixed_ip in nics['fixed_ips']:
-                port_ips.append(fixed_ip['ip_address'])
-            return_info.append(', '.join(port_ips))
-        return '; '.join(return_info)
-
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
 
@@ -320,7 +327,7 @@ class ListServer(command.Lister):
                 "name",
                 "status",
                 "power_state",
-                "nics",
+                "addresses",
                 "image_uuid",
                 "flavor_uuid",
                 "availability_zone",
@@ -338,13 +345,13 @@ class ListServer(command.Lister):
                 "uuid",
                 "name",
                 "status",
-                "nics",
+                "addresses",
                 "image_uuid",
             )
 
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
-        formatters = {'nics': self._nics_formatter,
+        formatters = {'addresses': _format_servers_list_networks,
                       'metadata': utils.format_dict}
         return (column_headers,
                 (utils.get_item_properties(
