@@ -337,7 +337,7 @@ class ListServer(command.Lister):
                 "Status",
                 "Power State",
                 "Networks",
-                "Image",
+                "Image Name",
                 "Flavor",
                 "Availability Zone",
                 'Properties',
@@ -359,7 +359,7 @@ class ListServer(command.Lister):
                 "Name",
                 "Status",
                 "Networks",
-                "Image",
+                "Image Name",
             )
             columns = (
                 "uuid",
@@ -371,9 +371,11 @@ class ListServer(command.Lister):
 
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
-
+        image_client = self.app.client_manager.image
         formatters = {'addresses': self._addresses_formatter,
-                      'metadata': utils.format_dict}
+                      'metadata': utils.format_dict,
+                      'image_uuid': lambda img: image_client.images.get(
+                          img).name}
         return (column_headers,
                 (utils.get_item_properties(
                     s, columns, formatters=formatters
@@ -392,6 +394,12 @@ class ShowServer(command.ShowOne):
         )
         return parser
 
+    def _format_image_field(self, data):
+        image_client = self.app.client_manager.image
+        image_uuid = data._info.pop('image_uuid')
+        image = image_client.images.get(image_uuid)
+        return '%s (%s)' % (image.name, image_uuid)
+
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
         data = utils.find_resource(
@@ -407,6 +415,7 @@ class ShowServer(command.ShowOne):
                 'addresses': _addresses_formatter(
                     network_client,
                     data._info.pop('addresses')),
+                'image': self._format_image_field(data)
             },
         )
 
