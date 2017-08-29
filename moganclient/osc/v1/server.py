@@ -734,11 +734,18 @@ class ShowConsoleURL(command.ShowOne):
         )
         type_group = parser.add_mutually_exclusive_group()
         type_group.add_argument(
-            '--serial',
+            '--shellinabox',
             dest='url_type',
             action='store_const',
-            const='serial',
-            help=_("Show serial console URL"),
+            const='shellinabox',
+            help=_("Show shellinabox serial console URL"),
+        )
+        type_group.add_argument(
+            '--socat',
+            dest='url_type',
+            action='store_const',
+            const='socat',
+            help=_("Show socat serial console URL"),
         )
         return parser
 
@@ -749,10 +756,11 @@ class ShowConsoleURL(command.ShowOne):
             parsed_args.server,
         )
 
-        data = bc_client.server.get_serial_console(server.uuid)
+        data = bc_client.server.get_remote_console(
+            server.uuid, parsed_args.url_type)
         if not data:
             return ({}, {})
 
         info = {}
-        info.update(data.console)
+        info.update(data._info)
         return zip(*sorted(info.items()))

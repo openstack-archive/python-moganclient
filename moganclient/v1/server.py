@@ -153,7 +153,9 @@ class ServerManager(base.ManagerWithFind):
             'server': base.getid(server_id), 'port_id': port_id}
         return self._delete(url)
 
-    def get_serial_console(self, server_id):
-        url = '/servers/%(server)s/serial_console' % {
+    def get_remote_console(self, server_id, url_type):
+        url = '/servers/%(server)s/remote_consoles' % {
             'server': base.getid(server_id)}
-        return self._get(url)
+        data = {'protocol': 'serial',
+                'type': url_type}
+        return self._create(url, data=data)
