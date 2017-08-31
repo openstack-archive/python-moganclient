@@ -18,6 +18,7 @@ from moganclient.v1 import aggregate
 from moganclient.v1 import availability_zone
 from moganclient.v1 import flavor
 from moganclient.v1 import keypair
+from moganclient.v1 import manageable_server
 from moganclient.v1 import node
 from moganclient.v1 import server
 from moganclient.v1 import server_group
@@ -40,3 +41,5 @@ class Client(object):
         self.aggregate = aggregate.AggregateManager(self.http_client)
         self.server_group = server_group.ServerGroupManager(self.http_client)
         self.aggregate_node = aggregate.AggregateNodeManager(self.http_client)
+        self.manageable_server = manageable_server.ManageableServerManager(
+            self.http_client)
