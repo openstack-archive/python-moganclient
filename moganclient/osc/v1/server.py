@@ -248,11 +248,18 @@ class CreateServer(command.ShowOne):
                 userdata.close()
         # Special mapping for columns to make the output easier to read:
         # 'metadata' --> 'properties'
+        # 'image_uuid' --> '<image_name> (<image_uuid>)'
+        # 'flavor_uuid' --> '<flavor_name> (<flavor_uuid>)'
         data._info.update(
             {
                 'properties': utils.format_dict(data._info.pop('metadata')),
+                'image': '%s (%s)' % (image_data.name, image_data.id),
+                'flavor': '%s (%s)' % (flavor_data.name, flavor_data.uuid)
             },
         )
+        data._info.pop('flavor_uuid')
+        data._info.pop('image_uuid')
+
         info = {}
         info.update(data._info)
         return zip(*sorted(info.items()))
@@ -304,6 +311,12 @@ class ListServer(command.Lister):
             help=_("List additional fields in output")
         )
         parser.add_argument(
+            '-n', '--no-name-lookup',
+            action='store_true',
+            default=False,
+            help=_('Skip flavor and image name lookup.'),
+        )
+        parser.add_argument(
             '--all-projects',
             action='store_true',
             default=bool(int(os.environ.get("ALL_PROJECTS", 0))),
@@ -338,7 +351,9 @@ class ListServer(command.Lister):
                 "Power State",
                 "Networks",
                 "Image Name",
-                "Flavor",
+                "Image Id",
+                "Flavor Name",
+                "Flavor Id",
                 "Availability Zone",
                 'Properties',
             )
@@ -348,7 +363,9 @@ class ListServer(command.Lister):
                 "status",
                 "power_state",
                 "addresses",
+                "image_name",
                 "image_uuid",
+                "flavor_name",
                 "flavor_uuid",
                 "availability_zone",
                 'metadata',
@@ -359,23 +376,72 @@ class ListServer(command.Lister):
                 "Name",
                 "Status",
                 "Networks",
-                "Image Name",
+                "Image",
+                "Flavor",
             )
-            columns = (
-                "uuid",
-                "name",
-                "status",
-                "addresses",
-                "image_uuid",
-            )
+            if parsed_args.no_name_lookup:
+                columns = (
+                    "uuid",
+                    "name",
+                    "status",
+                    "addresses",
+                    "image_uuid",
+                    "flavor_uuid",
+                )
+            else:
+                columns = (
+                    "uuid",
+                    "name",
+                    "status",
+                    "addresses",
+                    "image_name",
+                    "flavor_name",
+                )
 
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
-        image_client = self.app.client_manager.image
         formatters = {'addresses': self._addresses_formatter,
-                      'metadata': utils.format_dict,
-                      'image_uuid': lambda img: image_client.images.get(
-                          img).name}
+                      'metadata': utils.format_dict
+                      }
+
+        images = {}
+        # Create a dict that maps image_id to image object.
+        # Needed so that we can display the "Image Name" column.
+        # "Image Name" is not crucial, so we swallow any exceptions.
+        if not parsed_args.no_name_lookup:
+            try:
+                images_list = self.app.client_manager.image.images.list()
+                for i in images_list:
+                    images[i.id] = i
+            except Exception:
+                pass
+
+        flavors = {}
+        # Create a dict that maps flavor_id to flavor object.
+        # Needed so that we can display the "Flavor Name" column.
+        # "Flavor Name" is not crucial, so we swallow any exceptions.
+        if not parsed_args.no_name_lookup:
+            try:
+                flavors_list = bc_client.flavor.list()
+                for i in flavors_list:
+                    flavors[i.uuid] = i
+            except Exception:
+                pass
+
+        # Populate image_name, image_id, flavor_name and flavor_id attributes
+        # of server objects so that we can display those columns.
+        for s in data:
+            image = images.get(s.image_uuid)
+            if image:
+                s.image_name = image.name
+            else:
+                s.image_name = ''
+            flavor = flavors.get(s.flavor_uuid)
+            if flavor:
+                s.flavor_name = flavor.name
+            else:
+                s.flavor_name = ''
+
         return (column_headers,
                 (utils.get_item_properties(
                     s, columns, formatters=formatters
@@ -400,6 +466,12 @@ class ShowServer(command.ShowOne):
         image = image_client.images.get(image_uuid)
         return '%s (%s)' % (image.name, image_uuid)
 
+    def _format_flavor_field(self, data):
+        bc_client = self.app.client_manager.baremetal_compute
+        flavor_uuid = data._info.pop('flavor_uuid')
+        flavor = bc_client.flavor.get(flavor_uuid)
+        return '%s (%s)' % (flavor.name, flavor_uuid)
+
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
         data = utils.find_resource(
@@ -415,7 +487,8 @@ class ShowServer(command.ShowOne):
                 'addresses': _addresses_formatter(
                     network_client,
                     data._info.pop('addresses')),
-                'image': self._format_image_field(data)
+                'image': self._format_image_field(data),
+                'flavor': self._format_flavor_field(data)
             },
         )
 

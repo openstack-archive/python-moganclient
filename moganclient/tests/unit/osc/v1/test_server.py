@@ -34,8 +34,8 @@ class TestServer(test_base.TestBaremetalComputeV1):
         'availability_zone',
         'created_at',
         'description',
-        'flavor_uuid',
-        'image_uuid',
+        'flavor',
+        'image',
         'links',
         'max_count',
         'min_count',
@@ -120,8 +120,10 @@ class TestServerCreate(TestServer):
 
         flavor_obj = mock.Mock()
         flavor_obj.uuid = flavor_id
+        flavor_obj.name = 'test-flavor'
         image_obj = mock.Mock()
         image_obj.id = image_id
+        image_obj.name = 'test-image'
         mock_find.side_effect = [flavor_obj, image_obj]
         fk_server = fakes.FakeServer.create_one_server(called_data['server'])
         mock_create.return_value = fk_server
@@ -137,8 +139,8 @@ class TestServerCreate(TestServer):
             fk_server.availability_zone,
             fk_server.created_at,
             fk_server.description,
-            fk_server.flavor_uuid,
-            fk_server.image_uuid,
+            'test-flavor (%s)' % fk_server.flavor_uuid,
+            'test-image (%s)' % fk_server.image_uuid,
             fk_server.links,
             1,
             1,
@@ -277,11 +279,7 @@ class TestServerList(test_base.TestBaremetalComputeV1):
         self.app.client_manager.network = mock.Mock()
         self.app.client_manager.network.find_network = \
             mock.Mock(return_value=network_obj)
-        mocked_img = mock.Mock()
-        mocked_img.name = 'test-img'
-        image_mock = mock.MagicMock()
-        image_mock.images.get.return_value = mocked_img
-        self.app.client_manager.image = image_mock
+
         fake_return_net = {
             "private": [
                 {
@@ -294,16 +292,37 @@ class TestServerList(test_base.TestBaremetalComputeV1):
                 }
             ]
         }
+
         self.fake_servers = fakes.FakeServer.create_servers(
             attrs={'status': 'active', 'power_state': 'power on'}, count=3)
+        fake_flavors = []
+        fake_imgs = []
         for s in self.fake_servers:
             setattr(s, 'addresses', fake_return_net)
+            i = self.fake_servers.index(s)
+            mocked_flv = mock.Mock()
+            mocked_flv.uuid = s.flavor_uuid
+            mocked_flv.name = 'test-flavor-' + str(i)
+            fake_flavors.append(mocked_flv)
+
+            mocked_img = mock.Mock()
+            mocked_img.id = s.image_uuid
+            mocked_img.name = 'test-img-' + str(i)
+            fake_imgs.append(mocked_img)
+
+        self.app.client_manager.baremetal_compute.flavor.list = mock.Mock(
+            return_value=fake_flavors)
+        mocked_img_client = mock.MagicMock()
+        mocked_img_client.images.list.return_value = fake_imgs
+        self.app.client_manager.image = mocked_img_client
+
         self.list_columns = (
             "UUID",
             "Name",
             "Status",
             'Networks',
-            'Image Name'
+            'Image',
+            'Flavor'
         )
 
         self.list_columns_long = (
@@ -313,7 +332,9 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             "Power State",
             "Networks",
             "Image Name",
-            "Flavor",
+            "Image Id",
+            "Flavor Name",
+            "Flavor Id",
             "Availability Zone",
             "Properties"
         )
@@ -323,7 +344,8 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             self.fake_servers[i].name,
             self.fake_servers[i].status,
             'private=172.24.4.4, 2001:db8::a',
-            'test-img',
+            'test-img-' + str(i),
+            'test-flavor-' + str(i),
             ) for i in range(3))
 
         self.list_data_long = tuple((
@@ -332,7 +354,9 @@ class TestServerList(test_base.TestBaremetalComputeV1):
             self.fake_servers[i].status,
             self.fake_servers[i].power_state,
             'private=172.24.4.4, 2001:db8::a',
-            'test-img',
+            'test-img-' + str(i),
+            self.fake_servers[i].image_uuid,
+            'test-flavor-' + str(i),
             self.fake_servers[i].flavor_uuid,
             self.fake_servers[i].availability_zone,
             '',
@@ -431,6 +455,10 @@ class TestServerShow(test_base.TestBaremetalComputeV1):
         image_mock = mock.MagicMock()
         image_mock.images.get.return_value = mocked_img
         self.app.client_manager.image = image_mock
+        fake_flavor = mock.Mock()
+        fake_flavor.name = 'test-flavor'
+        self.app.client_manager.baremetal_compute.flavor.get = mock.Mock(
+            return_value=fake_flavor)
 
     def test_server_show_with_uuid_specified(self, mock_get):
         args = [self.fake_server.uuid]
