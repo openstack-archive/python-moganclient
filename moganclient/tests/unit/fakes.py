@@ -24,6 +24,7 @@ from moganclient.common import base
 from moganclient.v1 import aggregate
 from moganclient.v1 import availability_zone
 from moganclient.v1 import flavor
+from moganclient.v1 import manageable_server
 from moganclient.v1 import node
 from moganclient.v1 import server
 from moganclient.v1 import server_group
@@ -73,6 +74,8 @@ class FakeBaremetalComputeV1Client(object):
         self.server_group = server_group.ServerGroupManager(
             self.fake_http_client)
         self.aggregate_node = aggregate.AggregateNodeManager(
+            self.fake_http_client)
+        self.manageable_server = manageable_server.ManageableServerManager(
             self.fake_http_client)
 
 
