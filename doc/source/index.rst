@@ -1,25 +1,26 @@
-.. python-moganclient documentation master file, created by
-   sphinx-quickstart on Tue Jul  9 22:26:36 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+==========================================
+Python Bindings to the OpenStack Mogan API
+==========================================
 
-Welcome to python-moganclient's documentation!
-==============================================
+This is a client for OpenStack `Mogan`_ API. There's a Python API
+(the `moganclient` modules), and a set of event related commands
+which are integrated with the OSC CLI tool. Each implements the entire Mogan
+API.
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   readme
    installation
-   usage
-   contributing
+   contributor/index
+   osc/index
+
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
 
+.. _Mogan: https://wiki.openstack.org/wiki/Mogan
