@@ -12,8 +12,3 @@ Note that this is a hard requirement.
 * Documentation: http://python-moganclient.readthedocs.io/
 * Source: http://git.openstack.org/cgit/openstack/python-moganclient
 * Bugs: http://bugs.launchpad.net/python-moganclient
-
-Features
---------
-
-* TODO
