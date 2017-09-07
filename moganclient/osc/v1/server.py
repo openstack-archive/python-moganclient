@@ -149,6 +149,14 @@ class CreateServer(command.ShowOne):
                    '(repeat option to set multiple values)'),
         )
         parser.add_argument(
+            '--partition',
+            metavar='<key=value>',
+            action=parseractions.KeyValueAction,
+            help=_('Create a partition on the root disk of this server, '
+                   'only root_gb(required), ephemeral_gb, and swap_mb allowed '
+                   '(repeat option to set multiple partitions)'),
+        )
+        parser.add_argument(
             "--min",
             metavar='<count>',
             type=int,
@@ -232,6 +240,7 @@ class CreateServer(command.ShowOne):
             files=files,
             key_name=parsed_args.key_name,
             metadata=parsed_args.property,
+            partitions=parsed_args.partition,
             min_count=parsed_args.min,
             max_count=parsed_args.max,
             hint=parsed_args.hint
