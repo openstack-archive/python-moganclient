@@ -105,10 +105,9 @@ class CreateServer(command.ShowOne):
         )
         parser.add_argument(
             "--nic",
-            metavar="net-id=NETWORK[,port-type=PORT_TYPE]",
+            metavar="<net-id=NETWORK, port-id=PORT>",
             required=True,
-            required_keys=['net-id'],
-            optional_keys=['port-type'],
+            optional_keys=['net-id', 'port-id'],
             action=parseractions.MultiKeyValueAction,
             help=_("Create a NIC on the server. "
                    "Specify option multiple times to create multiple NICs."),
@@ -181,12 +180,12 @@ class CreateServer(command.ShowOne):
             parsed_args.image)
 
         for nic in parsed_args.nic:
-            if 'port-type' in nic:
-                nic['port_type'] = nic['port-type']
-                del nic['port-type']
             if 'net-id' in nic:
                 nic['net_id'] = nic['net-id']
                 del nic['net-id']
+            if 'port-id' in nic:
+                nic['port_id'] = nic['port-id']
+                del nic['port-id']
 
         files = {}
         for f in parsed_args.file:
@@ -658,7 +657,7 @@ class ShowServerNetworkInfo(command.Lister):
         )
         data = bc_client.server.get_server_nics(server.uuid)
         columns = ('network_id', 'port_id', 'mac_address', 'fixed_ips',
-                   'floating_ip', 'port_type')
+                   'floating_ip')
         formatters = {'fixed_ips': lambda s: json.dumps(s, indent=4)}
         return (columns,
                 (utils.get_item_properties(
