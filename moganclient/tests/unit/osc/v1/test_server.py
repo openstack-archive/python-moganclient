@@ -81,12 +81,12 @@ class TestServerCreate(TestServer):
             ('image', image_id)]
         called_networks = copy.deepcopy(networks)
         for nic in called_networks:
-            if 'port-type' in nic:
-                nic['port_type'] = nic['port-type']
-                del nic['port-type']
             if 'net-id' in nic:
                 nic['net_id'] = nic['net-id']
                 del nic['net-id']
+            if 'port-id' in nic:
+                nic['port_id'] = nic['port-id']
+                del nic['port-id']
         called_data = {'server': {'name': name,
                                   'image_uuid': image_id,
                                   'flavor_uuid': flavor_id,
@@ -94,17 +94,12 @@ class TestServerCreate(TestServer):
                                   'min_count': 1,
                                   'max_count': 1}}
         for network in networks:
-            network_id = network.get('net-id')
-            port_type = network.get('port-type')
-            if port_type:
-                arglist.extend(
-                    ['--nic',
-                     'net-id=' + network_id + ',port-type=' + port_type])
-                verifylist.append(
-                    ('nic', [{'net-id': network_id, 'port-type': port_type}]))
-            else:
-                arglist.extend(['--nic', 'net-id=' + network_id])
-                verifylist.append(('nic', [{'net-id': network_id}]))
+            if 'net-id' in network:
+                arglist.extend(['--nic', 'net-id=' + network['net-id']])
+                verifylist.append(('nic', [{'net-id': network['net-id']}]))
+            elif 'port-id' in network:
+                arglist.extend(['--nic', 'port-id=' + network['port-id']])
+                verifylist.append(('nic', [{'port-id': network['port-id']}]))
         if description:
             arglist.extend(['--description', description])
             verifylist.append(('description', description))
@@ -187,17 +182,6 @@ class TestServerCreate(TestServer):
                                       name, flavor_id, image_id,
                                       networks, availability_zone=fake_az)
 
-    def test_server_create_with_port_type(self, mock_create, mock_find):
-        name = 'server1'
-        flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
-        image_id = 'image-id-' + uuidutils.generate_uuid(dashed=False)
-        networks = [{'net-id': 'net-id-' + uuidutils.generate_uuid(
-            dashed=False),
-            'port-type': 'normal'}]
-        self._test_create_fake_server(mock_create, mock_find,
-                                      name, flavor_id, image_id,
-                                      networks)
-
     def test_server_create_with_metadata(self, mock_create, mock_find):
         name = 'server1'
         flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
@@ -208,6 +192,16 @@ class TestServerCreate(TestServer):
         self._test_create_fake_server(mock_create, mock_find,
                                       name, flavor_id, image_id,
                                       networks, properties=properties)
+
+    def test_server_create_with_port_specified(self, mock_create, mock_find):
+        name = 'server1'
+        flavor_id = 'flavor-id-' + uuidutils.generate_uuid(dashed=False)
+        image_id = 'image-id-' + uuidutils.generate_uuid(dashed=False)
+        networks = [{'port-id': 'port-id-' + uuidutils.generate_uuid(
+            dashed=False)}]
+        self._test_create_fake_server(mock_create, mock_find,
+                                      name, flavor_id, image_id,
+                                      networks)
 
 
 @mock.patch.object(utils, 'find_resource')
