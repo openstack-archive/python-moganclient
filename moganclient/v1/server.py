@@ -31,7 +31,7 @@ class ServerManager(base.ManagerWithFind):
     def create(self, name, image_uuid, flavor_uuid, networks,
                description=None, availability_zone=None, metadata=None,
                userdata=None, files=None, key_name=None, min_count=None,
-               max_count=None, hint=None):
+               max_count=None, hint=None, partitions=None):
         url = '/servers'
         server = {
             'name': name,
@@ -90,6 +90,8 @@ class ServerManager(base.ManagerWithFind):
             server['key_name'] = key_name
         if metadata is not None:
             server['metadata'] = metadata
+        if partitions is not None:
+            server['partitions'] = partitions
         if min_count is not None:
             server['min_count'] = min_count
         if max_count is not None:
