@@ -332,21 +332,6 @@ class ListServer(command.Lister):
         )
         return parser
 
-    def _addresses_formatter(self, networks):
-        output = []
-        network_client = self.app.client_manager.network
-        for (network, addresses) in networks.items():
-            if not addresses:
-                continue
-            addrs = [addr['addr'] for addr in addresses]
-            network_data = network_client.find_network(
-                network, ignore_missing=False)
-            net_ident = network_data.name or network_data.id
-            addresses_csv = ', '.join(addrs)
-            group = "%s=%s" % (net_ident, addresses_csv)
-            output.append(group)
-        return '; '.join(output)
-
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
 
@@ -408,7 +393,9 @@ class ListServer(command.Lister):
 
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
-        formatters = {'addresses': self._addresses_formatter,
+        net_client = self.app.client_manager.network
+        addr_formatter = lambda addr: _addresses_formatter(net_client, addr)
+        formatters = {'addresses': addr_formatter,
                       'metadata': utils.format_dict
                       }
 
