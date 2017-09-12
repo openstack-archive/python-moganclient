@@ -15,7 +15,7 @@
 
 
 """Mogan v1 Baremetal server action implementations"""
-
+import functools
 import io
 import json
 import logging
@@ -27,23 +27,9 @@ from osc_lib import exceptions
 from osc_lib import utils
 
 from moganclient.common.i18n import _
+from moganclient.common import utils as cli_utils
 
 LOG = logging.getLogger(__name__)
-
-
-def _addresses_formatter(network_client, networks):
-    output = []
-    for (network, addresses) in networks.items():
-        if not addresses:
-            continue
-        addrs = [addr['addr'] for addr in addresses]
-        network_data = network_client.find_network(
-            network, ignore_missing=False)
-        net_ident = network_data.name or network_data.id
-        addresses_csv = ', '.join(addrs)
-        group = "%s=%s" % (net_ident, addresses_csv)
-        output.append(group)
-    return '; '.join(output)
 
 
 class ServersActionBase(command.Command):
@@ -394,8 +380,8 @@ class ListServer(command.Lister):
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
         net_client = self.app.client_manager.network
-        addr_formatter = lambda addr: _addresses_formatter(net_client, addr)
-        formatters = {'addresses': addr_formatter,
+        addr_fmt = functools.partial(cli_utils.addresses_formatter, net_client)
+        formatters = {'addresses': addr_fmt,
                       'metadata': utils.format_dict
                       }
 
@@ -455,20 +441,6 @@ class ShowServer(command.ShowOne):
         )
         return parser
 
-    def _format_image_field(self, data):
-        image_client = self.app.client_manager.image
-        image_uuid = data._info.pop('image_uuid')
-        if image_uuid:
-            image = image_client.images.get(image_uuid)
-            return '%s (%s)' % (image.name, image_uuid)
-
-    def _format_flavor_field(self, data):
-        bc_client = self.app.client_manager.baremetal_compute
-        flavor_uuid = data._info.pop('flavor_uuid')
-        if flavor_uuid:
-            flavor = bc_client.flavor.get(flavor_uuid)
-            return '%s (%s)' % (flavor.name, flavor_uuid)
-
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
         data = utils.find_resource(
@@ -478,14 +450,17 @@ class ShowServer(command.ShowOne):
         # Special mapping for columns to make the output easier to read:
         # 'metadata' --> 'properties'
         network_client = self.app.client_manager.network
+        image_client = self.app.client_manager.image
         data._info.update(
             {
                 'properties': utils.format_dict(data._info.pop('metadata')),
-                'addresses': _addresses_formatter(
+                'addresses': cli_utils.addresses_formatter(
                     network_client,
                     data._info.pop('addresses')),
-                'image': self._format_image_field(data),
-                'flavor': self._format_flavor_field(data)
+                'image': cli_utils.image_formatter(
+                    image_client, data._info.pop('image_uuid')),
+                'flavor': cli_utils.flavor_formatter(
+                    bc_client, data._info.pop('flavor_uuid'))
             },
         )
 

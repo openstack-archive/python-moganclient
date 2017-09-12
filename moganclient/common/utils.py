@@ -12,7 +12,6 @@
 #   License for the specific language governing permissions and limitations
 #   under the License.
 #
-
 import logging
 
 
@@ -35,3 +34,32 @@ def get_response_body(resp):
     else:
         body = None
     return body
+
+
+def addresses_formatter(network_client, networks):
+    output = []
+    for (network, addresses) in networks.items():
+        if not addresses:
+            continue
+        addrs = [addr['addr'] for addr in addresses]
+        network_data = network_client.find_network(
+            network, ignore_missing=False)
+        net_ident = network_data.name or network_data.id
+        addresses_csv = ', '.join(addrs)
+        group = "%s=%s" % (net_ident, addresses_csv)
+        output.append(group)
+    return '; '.join(output)
+
+
+def image_formatter(image_client, image_id):
+    if image_id:
+        image = image_client.images.get(image_id)
+        return '%s (%s)' % (image.name, image_id)
+    return ''
+
+
+def flavor_formatter(bc_client, flavor_id):
+    if flavor_id:
+        flavor = bc_client.flavor.get(flavor_id)
+        return '%s (%s)' % (flavor.name, flavor_id)
+    return ''

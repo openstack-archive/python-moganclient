@@ -161,11 +161,11 @@ class TestServerManage(TestManageableServer):
             data=called_data)
         self.assertEqual(self.columns, columns)
         expected_data = (
-            fk_server.addresses,
+            '',
             fk_server.availability_zone,
             fk_server.created_at,
             fk_server.description,
-            None,
+            '',
             'test-image (%s)' % fk_server.image_uuid,
             fk_server.links,
             fk_server.name,
