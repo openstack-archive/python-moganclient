@@ -17,15 +17,13 @@
 """Mogan v1 manageable servers action implementations"""
 
 import json
-import logging
 
 from osc_lib.cli import parseractions
 from osc_lib.command import command
 from osc_lib import utils
 
 from moganclient.common.i18n import _
-
-LOG = logging.getLogger(__name__)
+from moganclient.common import utils as cli_utils
 
 
 class ListManageableServer(command.Lister):
@@ -124,22 +122,10 @@ class ManageServer(command.ShowOne):
 
         return parser
 
-    def _format_image_field(self, data):
-        image_client = self.app.client_manager.image
-        image_uuid = data._info.pop('image_uuid')
-        if image_uuid:
-            image = image_client.images.get(image_uuid)
-            return '%s (%s)' % (image.name, image_uuid)
-
-    def _format_flavor_field(self, data):
-        bc_client = self.app.client_manager.baremetal_compute
-        flavor_uuid = data._info.pop('flavor_uuid')
-        if flavor_uuid:
-            flavor = bc_client.flavor.get(flavor_uuid)
-            return '%s (%s)' % (flavor.name, flavor_uuid)
-
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
+        image_client = self.app.client_manager.image
+        network_client = self.app.client_manager.network
 
         boot_kwargs = dict(
             name=parsed_args.name,
@@ -152,8 +138,13 @@ class ManageServer(command.ShowOne):
         data._info.update(
             {
                 'properties': utils.format_dict(data._info.pop('metadata')),
-                'flavor': self._format_flavor_field(data),
-                'image': self._format_image_field(data)
+                'flavor': cli_utils.flavor_formatter(
+                    bc_client, data._info.pop('flavor_uuid')),
+                'image': cli_utils.image_formatter(
+                    image_client, data._info.pop('image_uuid')),
+                'addresses': cli_utils.addresses_formatter(
+                    network_client,
+                    data._info.pop('addresses'))
             },
         )
 
