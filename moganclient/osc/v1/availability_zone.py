@@ -30,5 +30,5 @@ class ListAvailabilityZone(command.Lister):
         bc_client = self.app.client_manager.baremetal_compute
 
         data = bc_client.availability_zone.list()
-        return (('availability_zone',),
+        return (('Zone Name',),
                 tuple((d,) for d in data))

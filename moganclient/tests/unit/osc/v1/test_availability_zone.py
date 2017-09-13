@@ -35,5 +35,5 @@ class TestAvailabilityZoneList(test_base.TestBaremetalComputeV1):
         columns, data = self.cmd.take_action(parsed_args)
         mock_list.assert_called_once_with('/availability_zones',
                                           response_key='availability_zones')
-        self.assertEqual(('availability_zone',), columns)
+        self.assertEqual(('Zone Name',), columns)
         self.assertEqual(((('az1', 'az2', 'az3'),),), data)
