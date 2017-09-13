@@ -379,6 +379,8 @@ class ListServer(command.Lister):
 
         data = bc_client.server.list(detailed=True,
                                      all_projects=parsed_args.all_projects)
+        if not data:
+            return (), ()
         net_client = self.app.client_manager.network
         addr_fmt = functools.partial(cli_utils.addresses_formatter, net_client)
         formatters = {'addresses': addr_fmt,
