@@ -34,7 +34,6 @@ class TestFlavor(test_base.TestBaremetalComputeV1):
         'disabled',
         'is_public',
         'name',
-        'resource_traits',
         'resources',
         'updated_at',
         'uuid',
@@ -46,7 +45,6 @@ class TestFlavor(test_base.TestBaremetalComputeV1):
         fake_flavor.disabled,
         fake_flavor.is_public,
         fake_flavor.name,
-        fake_flavor.resource_traits,
         fake_flavor.resources,
         fake_flavor.updated_at,
         fake_flavor.uuid,
@@ -226,7 +224,6 @@ class TestFlavorList(TestFlavor):
         "Is Public",
         "Description",
         "Resources",
-        "Resource Traits",
     )
 
     list_data = ((
@@ -235,7 +232,6 @@ class TestFlavorList(TestFlavor):
         TestFlavor.fake_flavor.is_public,
         TestFlavor.fake_flavor.description,
         TestFlavor.fake_flavor.resources,
-        TestFlavor.fake_flavor.resource_traits,
         ),)
 
     def setUp(self):

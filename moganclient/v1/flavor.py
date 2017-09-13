@@ -23,8 +23,7 @@ class Flavor(base.Resource):
 class FlavorManager(base.ManagerWithFind):
     resource_class = Flavor
 
-    def create(self, name, resources, resource_traits, is_public, disabled,
-               description=None):
+    def create(self, name, resources, is_public, disabled, description=None):
         url = '/flavors'
         data = {
             'name': name,
@@ -34,8 +33,6 @@ class FlavorManager(base.ManagerWithFind):
         }
         if resources:
             data['resources'] = resources
-        if resource_traits:
-            data['resource_traits'] = resource_traits
         return self._create(url, data=data)
 
     def delete(self, flavor):
