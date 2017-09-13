@@ -68,13 +68,6 @@ class CreateFlavor(command.ShowOne):
             help=_("Resources to add to this flavor "
                    "(repeat option to set multiple resources)")
         )
-        parser.add_argument(
-            "--resource-traits",
-            metavar="<key=value>",
-            action=parseractions.KeyValueAction,
-            help=_("Resource traits to add to this flavor "
-                   "(repeat option to set multiple resource traits)")
-        )
         return parser
 
     def take_action(self, parsed_args):
@@ -91,7 +84,6 @@ class CreateFlavor(command.ShowOne):
             name=parsed_args.name,
             description=parsed_args.description,
             resources=parsed_args.resources,
-            resource_traits=parsed_args.resource_traits,
             is_public=is_public,
             disabled=parsed_args.disabled,
         )
@@ -148,7 +140,6 @@ class ListFlavor(command.Lister):
             "Is Public",
             "Description",
             "Resources",
-            "Resource Traits",
         )
         columns = (
             "UUID",
@@ -156,7 +147,6 @@ class ListFlavor(command.Lister):
             "Is Public",
             "Description",
             "Resources",
-            "Resource Traits",
         )
 
         return (column_headers,
