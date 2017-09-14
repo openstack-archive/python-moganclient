@@ -556,6 +556,46 @@ class UnsetServer(command.Command):
             bc_client.server.update(server.uuid, updates)
 
 
+class RebuildServer(command.Command):
+    """Rebuild a baremetal server."""
+
+    def get_parser(self, prog_name):
+        parser = super(RebuildServer, self).get_parser(prog_name)
+        parser.add_argument(
+            'server',
+            metavar='<server>',
+            help=_("Baremetal server to be rebuilt (name or UUID)")
+        )
+        parser.add_argument(
+            "--image",
+            metavar="<image>",
+            help=_('Rebuild baremetal server with this image (name or ID)'),
+        )
+        parser.add_argument(
+            '--preserve-ephemeral',
+            action='store_true',
+            default=False,
+            help=_("Preserve the ephemeral disk partition when rebuilding")
+        )
+        return parser
+
+    def take_action(self, parsed_args):
+        bc_client = self.app.client_manager.baremetal_compute
+        server = utils.find_resource(
+            bc_client.server,
+            parsed_args.server,
+        )
+        if parsed_args.image:
+            image = utils.find_resource(
+                self.app.client_manager.image.images,
+                parsed_args.image)
+            image_id = image.id
+        else:
+            image_id = None
+        bc_client.server.rebuild(server.uuid, image_id,
+                                 parsed_args.preserve_ephemeral)
+
+
 class StartServer(ServersActionBase):
     """Start a baremetal server."""
 

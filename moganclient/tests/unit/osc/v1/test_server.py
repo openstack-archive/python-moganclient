@@ -753,3 +753,39 @@ class TestServerRemoveInterface(TestServer):
         expected_url = '/servers/%(server)s/networks/interfaces/%(port_id)s' % \
                        {'server': server, 'port_id': port_id}
         mock_delete.assert_called_once_with(expected_url)
+
+
+@mock.patch.object(utils, 'find_resource')
+@mock.patch.object(server_mgr.ServerManager, '_update_all')
+class TestServerRebuild(test_base.TestBaremetalComputeV1):
+    def setUp(self):
+        super(TestServerRebuild, self).setUp()
+        self.cmd = server.RebuildServer(self.app, None)
+        self.fake_server = fakes.FakeServer.create_one_server()
+
+    def test_server_rebuild(self, mock_update_all, mock_find):
+        mock_find.return_value = self.fake_server
+        args = [self.fake_server.uuid]
+        verify_args = [('server', self.fake_server.uuid)]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        mock_update_all.assert_called_with(
+            '/servers/%s/states/provision' % self.fake_server.uuid,
+            data={'target': 'rebuild', 'preserve_ephemeral': False})
+
+    def test_server_rebuild_with_image(self, mock_update_all, mock_find):
+        self.app.client_manager.image = mock.Mock()
+        mocked_img = mock.Mock()
+        mocked_img.id = 'mocked-img-id'
+        mock_find.side_effect = [self.fake_server, mocked_img]
+        args = ['--image', 'mocked-img-id', '--preserve-ephemeral',
+                self.fake_server.uuid]
+        verify_args = [('image', 'mocked-img-id'),
+                       ('preserve_ephemeral', True),
+                       ('server', self.fake_server.uuid)]
+        parsed_args = self.check_parser(self.cmd, args, verify_args)
+        self.cmd.take_action(parsed_args)
+        mock_update_all.assert_called_with(
+            '/servers/%s/states/provision' % self.fake_server.uuid,
+            data={'target': 'rebuild', 'image_uuid': 'mocked-img-id',
+                  'preserve_ephemeral': True})

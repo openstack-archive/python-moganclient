@@ -119,6 +119,14 @@ class ServerManager(base.ManagerWithFind):
         url = '/servers/%s' % base.getid(server_id)
         return self._update(url, data=updates)
 
+    def rebuild(self, server_id, image_uuid=None, preserve_ephemeral=None):
+        url = '/servers/%s/states/provision' % base.getid(server_id)
+        data = {"target": "rebuild"}
+        data.update(preserve_ephemeral=preserve_ephemeral)
+        if image_uuid:
+            data.update(image_uuid=image_uuid)
+        return self._update_all(url, data=data)
+
     def set_power_state(self, server_id, power_state):
         url = '/servers/%s/states/power' % base.getid(server_id)
         return self._update_all(url, data={'target': power_state})
