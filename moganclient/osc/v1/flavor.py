@@ -87,6 +87,15 @@ class CreateFlavor(command.ShowOne):
             is_public=is_public,
             disabled=parsed_args.disabled,
         )
+
+        data._info.update(
+            {
+                'resources': utils.format_dict(
+                    data._info.get('resources', {})),
+                'resource_aggregates': utils.format_dict(
+                    data._info.get('resource_aggregates', {})),
+            },
+        )
         info.update(data._info)
 
         return zip(*sorted(info.items()))
@@ -203,6 +212,15 @@ class ShowFlavor(command.ShowOne):
         data = utils.find_resource(
             bc_client.flavor,
             parsed_args.flavor,
+        )
+
+        data._info.update(
+            {
+                'resources': utils.format_dict(
+                    data._info.get('resources', {})),
+                'resource_aggregates': utils.format_dict(
+                    data._info.get('resource_aggregates', {})),
+            },
         )
         info = {}
         info.update(data._info)

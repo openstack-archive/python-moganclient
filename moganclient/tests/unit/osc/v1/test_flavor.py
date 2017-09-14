@@ -34,6 +34,7 @@ class TestFlavor(test_base.TestBaremetalComputeV1):
         'disabled',
         'is_public',
         'name',
+        'resource_aggregates',
         'resources',
         'updated_at',
         'uuid',
@@ -45,7 +46,8 @@ class TestFlavor(test_base.TestBaremetalComputeV1):
         fake_flavor.disabled,
         fake_flavor.is_public,
         fake_flavor.name,
-        fake_flavor.resources,
+        "dev='1'",
+        "BAREMETAL_GOLD='1'",
         fake_flavor.updated_at,
         fake_flavor.uuid,
     )
@@ -66,7 +68,7 @@ class TestFlavorCreate(TestFlavor):
             ('name', 'flavor1'),
             ('resources', {'k1': 'v1'}),
         ]
-        mock_create.return_value = self.fake_flavor
+        mock_create.return_value = copy.deepcopy(self.fake_flavor)
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with('/flavors',
@@ -89,7 +91,7 @@ class TestFlavorCreate(TestFlavor):
             ('public', True),
             ('name', 'flavor1'),
         ]
-        mock_create.return_value = self.fake_flavor
+        mock_create.return_value = copy.deepcopy(self.fake_flavor)
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with('/flavors',
@@ -111,7 +113,7 @@ class TestFlavorCreate(TestFlavor):
             ('private', True),
             ('name', 'flavor1'),
         ]
-        mock_create.return_value = self.fake_flavor
+        mock_create.return_value = copy.deepcopy(self.fake_flavor)
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with('/flavors',
@@ -133,7 +135,7 @@ class TestFlavorCreate(TestFlavor):
             ('description', 'test description.'),
             ('name', 'flavor1'),
         ]
-        mock_create.return_value = self.fake_flavor
+        mock_create.return_value = copy.deepcopy(self.fake_flavor)
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
         mock_create.assert_called_once_with(
@@ -159,7 +161,7 @@ class TestFlavorCreate(TestFlavor):
             ('resources', {'k1': 'v1'}),
             ('name', 'flavor1'),
         ]
-        mock_create.return_value = self.fake_flavor
+        mock_create.return_value = copy.deepcopy(self.fake_flavor)
         mock_get.return_value = {'resources': {'k1': 'v1'}}
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
