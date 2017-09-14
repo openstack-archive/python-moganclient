@@ -34,6 +34,7 @@ class TestFlavor(test_base.TestBaremetalComputeV1):
         'disabled',
         'is_public',
         'name',
+        'resource_aggregates',
         'resources',
         'updated_at',
         'uuid',
@@ -45,7 +46,8 @@ class TestFlavor(test_base.TestBaremetalComputeV1):
         fake_flavor.disabled,
         fake_flavor.is_public,
         fake_flavor.name,
-        fake_flavor.resources,
+        "dev='1'",
+        "BAREMETAL_GOLD='1'",
         fake_flavor.updated_at,
         fake_flavor.uuid,
     )
