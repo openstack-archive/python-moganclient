@@ -23,7 +23,8 @@ class Flavor(base.Resource):
 class FlavorManager(base.ManagerWithFind):
     resource_class = Flavor
 
-    def create(self, name, resources, is_public, disabled, description=None):
+    def create(self, name, resource, resource_aggregate, is_public,
+               disabled, description=None):
         url = '/flavors'
         data = {
             'name': name,
@@ -31,8 +32,10 @@ class FlavorManager(base.ManagerWithFind):
             'is_public': is_public,
             'disabled': disabled,
         }
-        if resources:
-            data['resources'] = resources
+        if resource:
+            data['resources'] = resource
+        if resource_aggregate:
+            data['resource_aggregates'] = resource_aggregate
         return self._create(url, data=data)
 
     def delete(self, flavor):
