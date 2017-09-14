@@ -38,6 +38,7 @@ class TestManageableServer(test_base.TestBaremetalComputeV1):
         'links',
         'name',
         'node_uuid',
+        'partitions',
         'properties',
         'updated_at',
         'uuid')
@@ -170,6 +171,7 @@ class TestServerManage(TestManageableServer):
             fk_server.links,
             fk_server.name,
             fk_server.node_uuid,
+            utils.format_dict(fk_server.partitions),
             utils.format_dict(fk_server.metadata),
             fk_server.updated_at,
             fk_server.uuid)

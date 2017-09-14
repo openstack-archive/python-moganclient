@@ -247,6 +247,7 @@ class CreateServer(command.ShowOne):
         data._info.update(
             {
                 'properties': utils.format_dict(data._info.pop('metadata')),
+                'partitions': utils.format_dict(data._info.pop('partitions')),
                 'image': '%s (%s)' % (image_data.name, image_data.id),
                 'flavor': '%s (%s)' % (flavor_data.name, flavor_data.uuid)
             },
@@ -456,6 +457,7 @@ class ShowServer(command.ShowOne):
         data._info.update(
             {
                 'properties': utils.format_dict(data._info.pop('metadata')),
+                'partitions': utils.format_dict(data._info.pop('partitions')),
                 'addresses': cli_utils.addresses_formatter(
                     network_client,
                     data._info.pop('addresses')),

@@ -40,6 +40,7 @@ class TestServer(test_base.TestBaremetalComputeV1):
         'max_count',
         'min_count',
         'name',
+        'partitions',
         'properties',
         'updated_at',
         'uuid')
@@ -140,6 +141,7 @@ class TestServerCreate(TestServer):
             1,
             1,
             fk_server.name,
+            utils.format_dict(fk_server.partitions),
             utils.format_dict(fk_server.metadata),
             fk_server.updated_at,
             fk_server.uuid)

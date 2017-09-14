@@ -138,6 +138,7 @@ class ManageServer(command.ShowOne):
         data._info.update(
             {
                 'properties': utils.format_dict(data._info.pop('metadata')),
+                'partitions': utils.format_dict(data._info.pop('partitions')),
                 'flavor': cli_utils.flavor_formatter(
                     bc_client, data._info.pop('flavor_uuid')),
                 'image': cli_utils.image_formatter(

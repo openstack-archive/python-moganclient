@@ -273,7 +273,8 @@ class FakeServer(object):
                 dashed=False),
             "availability_zone": "zone-name-" + uuidutils.generate_uuid(
                 dashed=False),
-            'metadata': {}
+            'metadata': {},
+            'partitions': {}
         }
 
         # Overwrite default attributes.
