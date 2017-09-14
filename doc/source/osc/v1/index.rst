@@ -19,7 +19,7 @@ Baremetalcompute server
     :command: baremetalcompute server add floating ip
 
 .. autoprogram-cliff:: openstack.baremetal_compute.v1
-    :command: baremetalcompute server add interface
+    :command: baremetalcompute server add port
 
 .. autoprogram-cliff:: openstack.baremetal_compute.v1
     :command: baremetalcompute server lock
@@ -34,7 +34,7 @@ Baremetalcompute server
     :command: baremetalcompute server remove floating ip
 
 .. autoprogram-cliff:: openstack.baremetal_compute.v1
-    :command: baremetalcompute server remove interface
+    :command: baremetalcompute server remove port
 
 .. autoprogram-cliff:: openstack.baremetal_compute.v1
     :command: baremetalcompute server set
