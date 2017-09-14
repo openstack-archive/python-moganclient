@@ -231,7 +231,7 @@ class TestFlavorList(TestFlavor):
         TestFlavor.fake_flavor.name,
         TestFlavor.fake_flavor.is_public,
         TestFlavor.fake_flavor.description,
-        TestFlavor.fake_flavor.resources,
+        "BAREMETAL_GOLD='1'",
         ),)
 
     def setUp(self):

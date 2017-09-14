@@ -129,30 +129,61 @@ class DeleteFlavor(command.Command):
 class ListFlavor(command.Lister):
     """List all baremetal flavors"""
 
+    def get_parser(self, prog_name):
+        parser = super(ListFlavor, self).get_parser(prog_name)
+        parser.add_argument(
+            '--long',
+            action='store_true',
+            default=False,
+            help=_("List additional fields in output")
+        )
+        return parser
+
     def take_action(self, parsed_args):
         bc_client = self.app.client_manager.baremetal_compute
 
+        if parsed_args.long:
+            column_headers = (
+                "UUID",
+                "Name",
+                "Is Public",
+                "Description",
+                "Resources",
+                "Aggregates",
+                "Disabled",
+            )
+            columns = (
+                "uuid",
+                "name",
+                "is_public",
+                "description",
+                "resources",
+                "resource_aggregates",
+                "disabled",
+            )
+        else:
+            column_headers = (
+                "UUID",
+                "Name",
+                "Is Public",
+                "Description",
+                "Resources",
+            )
+            columns = (
+                "uuid",
+                "name",
+                "is_public",
+                "description",
+                "resources",
+            )
+
         data = bc_client.flavor.list()
-
-        column_headers = (
-            "UUID",
-            "Name",
-            "Is Public",
-            "Description",
-            "Resources",
-        )
-        columns = (
-            "UUID",
-            "Name",
-            "Is Public",
-            "Description",
-            "Resources",
-        )
-
+        formatters = {'resources': utils.format_dict,
+                      'resource_aggregates': utils.format_dict
+                      }
         return (column_headers,
                 (utils.get_item_properties(
-                    s, columns,
-                ) for s in data))
+                    s, columns, formatters=formatters) for s in data))
 
 
 class ShowFlavor(command.ShowOne):
