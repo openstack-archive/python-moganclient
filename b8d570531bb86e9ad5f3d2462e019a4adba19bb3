@@ -1,0 +1,9 @@
+Code-Review+2: liusheng <liusheng2048@gmail.com>
+Workflow+1: Zhenguo Niu <Niu.ZGlinux@gmail.com>
+Workflow+1: liusheng <liusheng2048@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Thu, 14 Sep 2017 08:16:34 +0000
+Reviewed-on: https://review.openstack.org/503961
+Project: openstack/python-moganclient
+Branch: refs/heads/master
