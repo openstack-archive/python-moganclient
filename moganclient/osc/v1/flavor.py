@@ -62,11 +62,18 @@ class CreateFlavor(command.ShowOne):
             help=_("Flavor description"),
         )
         parser.add_argument(
-            "--resources",
+            "--resource",
             metavar="<key=value>",
             action=parseractions.KeyValueAction,
-            help=_("Resources to add to this flavor "
+            help=_("Resource to add to this flavor "
                    "(repeat option to set multiple resources)")
+        )
+        parser.add_argument(
+            "--resource-aggregate",
+            metavar="<key=value>",
+            action=parseractions.KeyValueAction,
+            help=_("Resource aggregate to add to this flavor "
+                   "(repeat option to set multiple aggregates)")
         )
         return parser
 
@@ -83,7 +90,8 @@ class CreateFlavor(command.ShowOne):
         data = bc_client.flavor.create(
             name=parsed_args.name,
             description=parsed_args.description,
-            resources=parsed_args.resources,
+            resource=parsed_args.resource,
+            resource_aggregate=parsed_args.resource_aggregate,
             is_public=is_public,
             disabled=parsed_args.disabled,
         )

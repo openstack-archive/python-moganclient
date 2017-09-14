@@ -60,11 +60,11 @@ class TestFlavorCreate(TestFlavor):
     def test_flavor_create(self, mock_create):
         arglist = [
             'flavor1',
-            '--resources', 'k1=v1'
+            '--resource', 'k1=v1'
         ]
         verifylist = [
             ('name', 'flavor1'),
-            ('resources', {'k1': 'v1'}),
+            ('resource', {'k1': 'v1'}),
         ]
         mock_create.return_value = self.fake_flavor
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
@@ -152,11 +152,11 @@ class TestFlavorCreate(TestFlavor):
     def test_flavor_create_with_resources(self, mock_update, mock_get,
                                           mock_create):
         arglist = [
-            '--resources', 'k1=v1',
+            '--resource', 'k1=v1',
             'flavor1',
         ]
         verifylist = [
-            ('resources', {'k1': 'v1'}),
+            ('resource', {'k1': 'v1'}),
             ('name', 'flavor1'),
         ]
         mock_create.return_value = self.fake_flavor
