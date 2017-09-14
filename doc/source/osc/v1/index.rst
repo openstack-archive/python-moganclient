@@ -51,6 +51,9 @@ Baremetalcompute server
 .. autoprogram-cliff:: openstack.baremetal_compute.v1
     :command: baremetalcompute server unset
 
+.. autoprogram-cliff:: openstack.baremetal_compute.v1
+    :command: baremetalcompute server rebuild
+
 =============================
 Baremetalcompute server group
 =============================
