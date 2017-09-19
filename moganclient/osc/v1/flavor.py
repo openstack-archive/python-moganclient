@@ -58,12 +58,14 @@ class CreateFlavor(command.ShowOne):
         )
         parser.add_argument(
             "--description",
+            required=True,
             metavar="<description>",
             help=_("Flavor description"),
         )
         parser.add_argument(
             "--resource",
             metavar="<key=value>",
+            required=True,
             action=parseractions.KeyValueAction,
             help=_("Resource to add to this flavor "
                    "(repeat option to set multiple resources)")

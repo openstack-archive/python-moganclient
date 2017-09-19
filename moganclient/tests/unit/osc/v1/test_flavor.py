@@ -61,78 +61,41 @@ class TestFlavorCreate(TestFlavor):
 
     def test_flavor_create(self, mock_create):
         arglist = [
+            '--resource', 'k1=v1',
+            '--description', 'Flavor for testing',
             'flavor1',
-            '--resource', 'k1=v1'
         ]
         verifylist = [
-            ('name', 'flavor1'),
             ('resource', {'k1': 'v1'}),
+            ('description', 'Flavor for testing'),
+            ('name', 'flavor1')
         ]
         mock_create.return_value = copy.deepcopy(self.fake_flavor)
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_create.assert_called_once_with('/flavors',
-                                            data={
-                                                'name': 'flavor1',
-                                                'is_public': True,
-                                                'disabled': False,
-                                                'description': None,
-                                                'resources': {'k1': 'v1'},
-                                            })
+        mock_create.assert_called_once_with(
+            '/flavors',
+            data={
+                'name': 'flavor1',
+                'is_public': True,
+                'disabled': False,
+                'description': 'Flavor for testing',
+                'resources': {'k1': 'v1'},
+            })
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
 
     def test_flavor_create_with_public(self, mock_create):
         arglist = [
             '--public',
+            '--resource', 'k1=v1',
+            '--description', 'Flavor for testing',
             'flavor1',
         ]
         verifylist = [
             ('public', True),
-            ('name', 'flavor1'),
-        ]
-        mock_create.return_value = copy.deepcopy(self.fake_flavor)
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        columns, data = self.cmd.take_action(parsed_args)
-        mock_create.assert_called_once_with('/flavors',
-                                            data={
-                                                'name': 'flavor1',
-                                                'is_public': True,
-                                                'disabled': False,
-                                                'description': None,
-                                            })
-        self.assertEqual(self.columns, columns)
-        self.assertEqual(self.data, data)
-
-    def test_flavor_create_with_private(self, mock_create):
-        arglist = [
-            '--private',
-            'flavor1',
-        ]
-        verifylist = [
-            ('private', True),
-            ('name', 'flavor1'),
-        ]
-        mock_create.return_value = copy.deepcopy(self.fake_flavor)
-        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
-        columns, data = self.cmd.take_action(parsed_args)
-        mock_create.assert_called_once_with('/flavors',
-                                            data={
-                                                'name': 'flavor1',
-                                                'is_public': False,
-                                                'disabled': False,
-                                                'description': None,
-                                            })
-        self.assertEqual(self.columns, columns)
-        self.assertEqual(self.data, data)
-
-    def test_flavor_create_with_description(self, mock_create):
-        arglist = [
-            '--description', 'test description.',
-            'flavor1',
-        ]
-        verifylist = [
-            ('description', 'test description.'),
+            ('resource', {'k1': 'v1'}),
+            ('description', 'Flavor for testing'),
             ('name', 'flavor1'),
         ]
         mock_create.return_value = copy.deepcopy(self.fake_flavor)
@@ -144,38 +107,39 @@ class TestFlavorCreate(TestFlavor):
                 'name': 'flavor1',
                 'is_public': True,
                 'disabled': False,
-                'description': 'test description.',
+                'description': 'Flavor for testing',
+                'resources': {'k1': 'v1'},
             })
         self.assertEqual(self.columns, columns)
         self.assertEqual(self.data, data)
 
-    @mock.patch.object(flavor_mgr.FlavorManager, '_get')
-    @mock.patch.object(flavor_mgr.FlavorManager, '_update')
-    def test_flavor_create_with_resources(self, mock_update, mock_get,
-                                          mock_create):
+    def test_flavor_create_with_private(self, mock_create):
         arglist = [
+            '--private',
             '--resource', 'k1=v1',
+            '--description', 'Flavor for testing',
             'flavor1',
         ]
         verifylist = [
+            ('private', True),
             ('resource', {'k1': 'v1'}),
+            ('description', 'Flavor for testing'),
             ('name', 'flavor1'),
         ]
         mock_create.return_value = copy.deepcopy(self.fake_flavor)
-        mock_get.return_value = {'resources': {'k1': 'v1'}}
         parsed_args = self.check_parser(self.cmd, arglist, verifylist)
         columns, data = self.cmd.take_action(parsed_args)
-        mock_create.assert_called_once_with('/flavors',
-                                            data={
-                                                'name': 'flavor1',
-                                                'is_public': True,
-                                                'disabled': False,
-                                                'description': None,
-                                                'resources': {'k1': 'v1'},
-                                            })
+        mock_create.assert_called_once_with(
+            '/flavors',
+            data={
+                'name': 'flavor1',
+                'is_public': False,
+                'disabled': False,
+                'description': 'Flavor for testing',
+                'resources': {'k1': 'v1'},
+            })
         self.assertEqual(self.columns, columns)
-        expected_data = copy.deepcopy(self.data)
-        self.assertEqual(expected_data, data)
+        self.assertEqual(self.data, data)
 
 
 @mock.patch.object(utils, 'find_resource')
