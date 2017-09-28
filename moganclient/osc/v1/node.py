@@ -16,11 +16,7 @@
 
 """Mogan v1 Baremetal node implementations"""
 
-import logging
-
 from osc_lib.command import command
-
-LOG = logging.getLogger(__name__)
 
 
 class ListNode(command.Lister):

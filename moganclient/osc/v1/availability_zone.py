@@ -16,11 +16,7 @@
 
 """Mogan v1 availability zone action implementations"""
 
-import logging
-
 from osc_lib.command import command
-
-LOG = logging.getLogger(__name__)
 
 
 class ListAvailabilityZone(command.Lister):
