@@ -1,0 +1,10 @@
+Code-Review+2: Zhenguo Niu <Niu.ZGlinux@gmail.com>
+Code-Review+1: Xinran WANG <xin-ran.wang@intel.com>
+Code-Review+1: Nam Nguyen Hoai <namnh@vn.fujitsu.com>
+Workflow+1: Zhenguo Niu <Niu.ZGlinux@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Mon, 09 Oct 2017 01:38:42 +0000
+Reviewed-on: https://review.openstack.org/508089
+Project: openstack/python-moganclient
+Branch: refs/heads/master
