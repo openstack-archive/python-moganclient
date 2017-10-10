@@ -63,3 +63,13 @@ def flavor_formatter(bc_client, flavor_id):
         flavor = bc_client.flavor.get(flavor_id)
         return '%s (%s)' % (flavor.name, flavor_id)
     return ''
+
+
+def clean_listing_columns(headers, columns, data_sample):
+    col_headers = []
+    cols = []
+    for header, col in zip(headers, columns):
+        if hasattr(data_sample, col):
+            col_headers.append(header)
+            cols.append(col)
+    return tuple(col_headers), tuple(cols)
