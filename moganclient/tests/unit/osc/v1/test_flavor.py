@@ -214,6 +214,22 @@ class TestFlavorList(TestFlavor):
         self.assertEqual(self.list_columns, columns)
         self.assertEqual(self.list_data, tuple(data))
 
+    def test_flavor_list_non_admin(self, mock_list):
+        arglist = []
+        verifylist = []
+        fake_flavor = fakes.FakeFlavor.create_one_flavor()
+        delattr(fake_flavor, 'resource_aggregates')
+        delattr(fake_flavor, 'resources')
+        mock_list.return_value = [fake_flavor]
+        parsed_args = self.check_parser(self.cmd, arglist, verifylist)
+        columns, data = self.cmd.take_action(parsed_args)
+        mock_list.assert_called_once_with('/flavors', response_key='flavors')
+        column_headers = ('UUID', 'Name', 'Is Public', 'Description')
+        self.assertEqual(column_headers, columns)
+        columns_data = ((fake_flavor.uuid, fake_flavor.name,
+                         fake_flavor.is_public, fake_flavor.description),)
+        self.assertEqual(columns_data, tuple(data))
+
 
 @mock.patch.object(flavor_mgr.FlavorManager, '_get')
 class TestFlavorShow(TestFlavor):

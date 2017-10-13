@@ -25,6 +25,7 @@ from osc_lib import utils
 from oslo_utils import strutils
 
 from moganclient.common.i18n import _
+from moganclient.common import utils as cli_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -98,14 +99,12 @@ class CreateFlavor(command.ShowOne):
             disabled=parsed_args.disabled,
         )
 
-        data._info.update(
-            {
-                'resources': utils.format_dict(
-                    data._info.get('resources', {})),
-                'resource_aggregates': utils.format_dict(
-                    data._info.get('resource_aggregates', {})),
-            },
-        )
+        if 'resources' in data._info:
+            data._info.update({'resources': utils.format_dict(
+                data._info.get('resources', {}))})
+        if 'resource_aggregates' in data._info:
+            data._info.update({'resource_aggregates': utils.format_dict(
+                data._info.get('resource_aggregates', {}))})
         info.update(data._info)
 
         return zip(*sorted(info.items()))
@@ -197,9 +196,14 @@ class ListFlavor(command.Lister):
             )
 
         data = bc_client.flavor.list()
+        if not data:
+            return (), ()
+        column_headers, columns = cli_utils.clean_listing_columns(
+            column_headers, columns, data[0])
         formatters = {'resources': utils.format_dict,
                       'resource_aggregates': utils.format_dict
                       }
+
         return (column_headers,
                 (utils.get_item_properties(
                     s, columns, formatters=formatters) for s in data))
@@ -224,14 +228,12 @@ class ShowFlavor(command.ShowOne):
             parsed_args.flavor,
         )
 
-        data._info.update(
-            {
-                'resources': utils.format_dict(
-                    data._info.get('resources', {})),
-                'resource_aggregates': utils.format_dict(
-                    data._info.get('resource_aggregates', {})),
-            },
-        )
+        if 'resources' in data._info:
+            data._info.update({'resources': utils.format_dict(
+                data._info.get('resources', {}))})
+        if 'resource_aggregates' in data._info:
+            data._info.update({'resource_aggregates': utils.format_dict(
+                data._info.get('resource_aggregates', {}))})
         info = {}
         info.update(data._info)
         return zip(*sorted(info.items()))
