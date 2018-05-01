@@ -3,11 +3,11 @@ Python bindings to the OpenStack Mogan API
 ==========================================
 
 .. image:: https://img.shields.io/pypi/v/python-moganclient.svg
-    :target: https://pypi.python.org/pypi/python-moganclient/
+    :target: https://pypi.org/project/python-moganclient/
     :alt: Latest Version
 
 .. image:: https://img.shields.io/pypi/dm/python-moganclient.svg
-    :target: https://pypi.python.org/pypi/python-moganclient/
+    :target: https://pypi.org/project/python-moganclient/
     :alt: Downloads
 
 This is a client library for Mogan built on the Mogan API. It provides a
@@ -22,7 +22,7 @@ command-line tool (``openstack baremetalcompute``).
 * `Bugs`_ - issue tracking
 * `Source`_
 
-.. _PyPi: https://pypi.python.org/pypi/python-moganclient
+.. _PyPi: https://pypi.org/project/python-moganclient
 .. _Online Documentation: http://python-moganclient.readthedocs.io/
 .. _Launchpad project: https://launchpad.net/python-moganclient
 .. _Blueprints: https://blueprints.launchpad.net/python-moganclient
