@@ -17,9 +17,10 @@
 """Mogan v1 Baremetal server action implementations"""
 import functools
 import io
-import json
 import logging
 import os
+
+from oslo_serialization import jsonutils
 
 from osc_lib.cli import parseractions
 from osc_lib.command import command
@@ -675,7 +676,7 @@ class ShowServerNetworkInfo(command.Lister):
         data = bc_client.server.get_server_nics(server.uuid)
         columns = ('network_id', 'port_id', 'mac_address', 'fixed_ips',
                    'floating_ip')
-        formatters = {'fixed_ips': lambda s: json.dumps(s, indent=4)}
+        formatters = {'fixed_ips': lambda s: jsonutils.dumps(s, indent=4)}
         return (columns,
                 (utils.get_item_properties(
                     nic, columns, formatters=formatters) for nic in data))

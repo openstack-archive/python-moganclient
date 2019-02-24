@@ -14,7 +14,8 @@
 #
 
 import copy
-import json
+
+from oslo_serialization import jsonutils
 
 import mock
 from osc_lib import utils
@@ -112,8 +113,8 @@ class TestManageableServerList(test_base.TestBaremetalComputeV1):
         self.assertEqual(('UUID', 'Name', 'Power State', 'Provision State',
                           'Image Id', 'Resource Class', 'Ports',
                           'Port Groups'), columns)
-        p_str = json.dumps(self.fake_ms_obj.ports, indent=2, sort_keys=True)
-        pg_str = json.dumps(self.fake_ms_obj.portgroups, indent=2,
+        p_str = jsonutils.dumps(self.fake_ms_obj.ports, indent=2, sort_keys=True)
+        pg_str = jsonutils.dumps(self.fake_ms_obj.portgroups, indent=2,
                             sort_keys=True)
         self.assertEqual((("166f5efc-f1c8-421b-b909-47cea4e59f25",
                            "node-0", "power on", "active",
