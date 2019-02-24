@@ -16,7 +16,7 @@
 
 """Mogan v1 manageable servers action implementations"""
 
-import json
+from oslo_serialization import jsonutils
 
 from osc_lib.cli import parseractions
 from osc_lib.command import command
@@ -83,7 +83,7 @@ class ListManageableServer(command.Lister):
             )
 
         data = bc_client.manageable_server.list()
-        net_formatter = lambda s: json.dumps(s, indent=2, sort_keys=True)
+        net_formatter = lambda s: jsonutils.dumps(s, indent=2, sort_keys=True)
         formatters = {'ports': net_formatter,
                       'portgroups': net_formatter
                       }
