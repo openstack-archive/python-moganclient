@@ -1,4 +1,0 @@
----
-features:
-  - Support to list all manageable servers from Mogan. This will help users
-    to manage those existing servers using different drivers, like Ironic.
